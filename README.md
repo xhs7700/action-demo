@@ -7,7 +7,7 @@
 ## 项目概述
 
 本项目包含：
-- **2 个 C++ 库模块**：`algorithms`（排序和搜索算法）和 `data_structures`（链表、栈和队列）
+- **2 个 C++ 库模块**：`algorithms`（排序和搜索算法）和 `data_structures`（基础和高级数据结构）
 - **2 个可执行文件**：`main_app`（演示程序）和 `cli_tool`（命令行工具）
 - **完整的单元测试套件**：使用 Google Test 框架
 - **跨平台 CI/CD**：支持 Linux、macOS 和 Windows
@@ -39,7 +39,10 @@ action-demo/
 │   ├── data_structures/         # 数据结构库
 │   │   ├── include/data_structures/
 │   │   │   ├── linked_list.h    # 链表
-│   │   │   └── stack_queue.h    # 栈和队列
+│   │   │   ├── stack_queue.h    # 栈和队列
+│   │   │   ├── heap.h           # 二叉堆
+│   │   │   ├── avl_tree.h       # AVL 平衡树
+│   │   │   └── skip_list.h      # 跳表
 │   │   └── src/
 │   │       ├── linked_list.cpp
 │   │       └── stack_queue.cpp
@@ -53,7 +56,10 @@ action-demo/
 │   │   └── test_search.cpp
 │   └── data_structures/
 │       ├── test_linked_list.cpp
-│       └── test_stack_queue.cpp
+│       ├── test_stack_queue.cpp
+│       ├── test_heap.cpp
+│       ├── test_avl_tree.cpp
+│       └── test_skip_list.cpp
 └── CMakeLists.txt               # 根 CMake 配置
 ```
 
@@ -106,6 +112,8 @@ ctest --test-dir build --config Release --output-on-failure
 
 ### data_structures 库
 
+#### 基础数据结构
+
 - **链表 (LinkedList)**
   - 支持头部/尾部插入
   - 支持删除和查找操作
@@ -118,6 +126,26 @@ ctest --test-dir build --config Release --output-on-failure
 - **队列 (Queue)**
   - 先进先出 (FIFO) 数据结构
   - 支持 enqueue、dequeue、front、back 操作
+
+#### 高级数据结构
+
+- **二叉堆 (Binary Heap)**
+  - 支持最小堆和最大堆配置
+  - O(log n) 插入和提取操作
+  - O(n) 批量建堆
+  - 支持堆排序应用
+
+- **AVL 树 (AVL Tree)**
+  - 自平衡二叉搜索树
+  - 保证 O(log n) 的搜索、插入和删除
+  - 自动旋转平衡（LL、RR、LR、RL）
+  - 中序遍历支持
+
+- **跳表 (Skip List)**
+  - 概率性数据结构
+  - 平均 O(log n) 的搜索、插入和删除
+  - 比平衡树实现更简单
+  - 多层链表结构
 
 ## 测试
 
@@ -134,7 +162,7 @@ ctest --test-dir build --output-on-failure
 
 测试统计：
 - **algorithms 库**：15+ 测试用例
-- **data_structures 库**：20+ 测试用例
+- **data_structures 库**：40+ 测试用例（包含基础和高级数据结构）
 
 ## CI/CD 工作流
 
