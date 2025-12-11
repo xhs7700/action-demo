@@ -2,6 +2,9 @@
 add_library(data_structures
     src/linked_list.cpp
     src/stack_queue.cpp
+    src/heap.cpp
+    src/avl_tree.cpp
+    src/skip_list.cpp
 )
 
 # 设置包含目录
