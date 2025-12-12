@@ -104,7 +104,7 @@ int fibonacciSearch(const std::vector<int>& arr, int target) {
     }
 
     // 比较最后元素
-    if (fib1 && arr[offset + 1] == target) {
+    if (fib1 && offset + 1 < n && arr[offset + 1] == target) {
         return offset + 1;
     }
 

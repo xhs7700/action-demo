@@ -201,3 +201,22 @@ TEST(FibonacciSearchTest, LargeArray) {
     EXPECT_EQ(algorithms::fibonacciSearch(arr, 98), 49);
     EXPECT_EQ(algorithms::fibonacciSearch(arr, 1), -1); // 不存在的元素
 }
+
+// 测试斐波那契查找 - 边界情况（确保不会越界）
+TEST(FibonacciSearchTest, BoundaryCases) {
+    // 测试只有一个元素的数组
+    std::vector<int> single = {42};
+    EXPECT_EQ(algorithms::fibonacciSearch(single, 42), 0);
+    EXPECT_EQ(algorithms::fibonacciSearch(single, 0), -1);
+
+    // 测试两个元素的数组
+    std::vector<int> two = {10, 20};
+    EXPECT_EQ(algorithms::fibonacciSearch(two, 10), 0);
+    EXPECT_EQ(algorithms::fibonacciSearch(two, 20), 1);
+    EXPECT_EQ(algorithms::fibonacciSearch(two, 15), -1);
+
+    // 测试查找不存在的较大值（可能触发边界检查）
+    std::vector<int> small = {1, 2, 3};
+    EXPECT_EQ(algorithms::fibonacciSearch(small, 100), -1);
+    EXPECT_EQ(algorithms::fibonacciSearch(small, -1), -1);
+}
