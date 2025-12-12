@@ -8,6 +8,8 @@ include(GoogleTest)
 add_executable(algorithms_tests
     algorithms/test_sort.cpp
     algorithms/test_search.cpp
+    algorithms/test_string_algorithms.cpp
+    algorithms/test_dp_algorithms.cpp
 )
 
 target_link_libraries(algorithms_tests

@@ -7,7 +7,7 @@
 ## 项目概述
 
 本项目包含：
-- **2 个 C++ 库模块**：`algorithms`（排序和搜索算法）和 `data_structures`（基础和高级数据结构）
+- **2 个 C++ 库模块**：`algorithms`（排序、搜索、字符串和动态规划算法）和 `data_structures`（基础和高级数据结构）
 - **2 个可执行文件**：`main_app`（演示程序）和 `cli_tool`（命令行工具）
 - **完整的单元测试套件**：使用 Google Test 框架
 - **跨平台 CI/CD**：支持 Linux、macOS 和 Windows
@@ -32,10 +32,14 @@ action-demo/
 │   ├── algorithms/               # 算法库
 │   │   ├── include/algorithms/
 │   │   │   ├── sort.h           # 排序算法接口
-│   │   │   └── search.h         # 搜索算法接口
+│   │   │   ├── search.h         # 搜索算法接口
+│   │   │   ├── string_algorithms.h # 字符串算法接口
+│   │   │   └── dp_algorithms.h  # 动态规划算法接口
 │   │   └── src/
 │   │       ├── sort.cpp         # 排序算法实现
-│   │       └── search.cpp       # 搜索算法实现
+│   │       ├── search.cpp       # 搜索算法实现
+│   │       ├── string_algorithms.cpp # 字符串算法实现
+│   │       └── dp_algorithms.cpp # 动态规划算法实现
 │   ├── data_structures/         # 数据结构库
 │   │   ├── include/data_structures/
 │   │   │   ├── linked_list.h    # 链表
@@ -53,7 +57,9 @@ action-demo/
 ├── tests/                       # 单元测试
 │   ├── algorithms/
 │   │   ├── test_sort.cpp
-│   │   └── test_search.cpp
+│   │   ├── test_search.cpp
+│   │   ├── test_string_algorithms.cpp
+│   │   └── test_dp_algorithms.cpp
 │   └── data_structures/
 │       ├── test_linked_list.cpp
 │       ├── test_stack_queue.cpp
@@ -103,12 +109,25 @@ ctest --test-dir build --config Release --output-on-failure
 ### algorithms 库
 
 - **排序算法**
-  - 快速排序 (Quick Sort)
-  - 归并排序 (Merge Sort)
+  - 快速排序 (Quick Sort) - O(n log n) 分治算法
+  - 归并排序 (Merge Sort) - O(n log n) 稳定排序
+  - 插入排序 (Insertion Sort) - O(n²) 稳定排序，适用于小型数组
+  - 选择排序 (Selection Sort) - O(n²) 不稳定排序
+  - 冒泡排序 (Bubble Sort) - O(n²) 稳定排序，包含优化
 
 - **搜索算法**
-  - 二分查找 (Binary Search) - 用于已排序数组
-  - 线性查找 (Linear Search) - 用于任意数组
+  - 二分查找 (Binary Search) - O(log n)，用于已排序数组
+  - 线性查找 (Linear Search) - O(n)，用于任意数组
+  - 插值查找 (Interpolation Search) - O(log log n)，适用于均匀分布数据
+  - 斐波那契查找 (Fibonacci Search) - O(log n)，使用斐波那契数列
+
+- **字符串算法**
+  - KMP字符串匹配 (KMP Search) - O(m+n) 高效字符串搜索
+  - 前缀表计算 (Prefix Table) - KMP算法的核心组件
+
+- **动态规划算法**
+  - 0-1背包问题 (0-1 Knapsack) - 经典组合优化问题
+  - 最长公共子序列 (LCS) - 序列比较和编辑距离
 
 ### data_structures 库
 
@@ -161,7 +180,7 @@ ctest --test-dir build --output-on-failure
 ```
 
 测试统计：
-- **algorithms 库**：15+ 测试用例
+- **algorithms 库**：77 测试用例（包含排序、搜索、字符串和动态规划算法）
 - **data_structures 库**：40+ 测试用例（包含基础和高级数据结构）
 
 ## CI/CD 工作流

@@ -2,6 +2,8 @@
 add_library(algorithms
     src/sort.cpp
     src/search.cpp
+    src/string_algorithms.cpp
+    src/dp_algorithms.cpp
 )
 
 # 设置包含目录
