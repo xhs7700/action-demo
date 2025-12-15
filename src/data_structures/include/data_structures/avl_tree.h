@@ -5,59 +5,135 @@
 #include <optional>
 #include <vector>
 #include <algorithm>
+#include <utility>
 
 namespace data_structures {
 
 /**
- * AVL Tree Node
+ * @brief AVL树节点结构
+ * 
+ * @tparam T 节点存储的数据类型
  */
 template<typename T>
 struct AVLNode {
-    T data;
-    std::shared_ptr<AVLNode<T>> left;
-    std::shared_ptr<AVLNode<T>> right;
-    int height;
+    T data;                                 ///< 节点数据
+    std::shared_ptr<AVLNode<T>> left;       ///< 左子节点
+    std::shared_ptr<AVLNode<T>> right;      ///< 右子节点
+    int height;                             ///< 节点高度
     
     explicit AVLNode(const T& value) 
         : data(value), left(nullptr), right(nullptr), height(1) {}
+    
+    explicit AVLNode(T&& value) 
+        : data(std::move(value)), left(nullptr), right(nullptr), height(1) {}
 };
 
 /**
- * AVL Tree - Self-balancing binary search tree
+ * @brief AVL树（自平衡二叉搜索树）
+ * 
+ * AVL树是一种高度平衡的二叉搜索树，通过旋转操作维护平衡性质：
+ * 任意节点的左右子树高度差不超过1。
+ * 
+ * @tparam T 树中存储的元素类型，必须支持比较运算符（<, >, ==）
+ * 
+ * @note 时间复杂度: insert/remove/search 均为 O(log n)
+ * @note 空间复杂度: O(n)
+ * @note 平衡性质: |height(left) - height(right)| ≤ 1
+ * @note 旋转操作: 支持LL、RR、LR、RL四种旋转
+ * 
+ * @example
+ * AVLTree<int> tree;
+ * tree.insert(10);
+ * tree.insert(5);
+ * tree.insert(15);
+ * bool found = tree.search(5);  // true
+ * tree.remove(5);
+ * auto sorted = tree.inorderTraversal();  // {10, 15}
  */
 template<typename T>
 class AVLTree {
 public:
     AVLTree() : root_(nullptr), size_(0) {}
     
-    // Insert element
+    /**
+     * @brief 插入元素（左值版本）
+     * @param value 要插入的元素值
+     * @note 时间复杂度: O(log n)
+     * @note 不允许重复值
+     */
     void insert(const T& value);
     
-    // Remove element
+    /**
+     * @brief 插入元素（右值版本）
+     * @param value 要插入的元素值（支持移动语义）
+     * @note 时间复杂度: O(log n)
+     */
+    void insert(T&& value);
+    
+    /**
+     * @brief 删除指定元素
+     * @param value 要删除的元素值
+     * @return 成功删除返回true，元素不存在返回false
+     * @note 时间复杂度: O(log n)
+     * @note 删除后自动重新平衡树
+     */
     bool remove(const T& value);
     
-    // Search for element
+    /**
+     * @brief 查找指定元素
+     * @param value 要查找的元素值
+     * @return 找到返回true，否则返回false
+     * @note 时间复杂度: O(log n)
+     */
     bool search(const T& value) const;
     
-    // Find minimum element
+    /**
+     * @brief 查找最小元素
+     * @return std::optional<T>，包含最小值；树为空时返回std::nullopt
+     * @note 时间复杂度: O(log n)
+     */
     std::optional<T> findMin() const;
     
-    // Find maximum element
+    /**
+     * @brief 查找最大元素
+     * @return std::optional<T>，包含最大值；树为空时返回std::nullopt
+     * @note 时间复杂度: O(log n)
+     */
     std::optional<T> findMax() const;
     
-    // Get height of tree
+    /**
+     * @brief 获取树的高度
+     * @return 树的高度，空树返回0
+     * @note 时间复杂度: O(1)
+     */
     int height() const;
     
-    // Get size
-    size_t size() const { return size_; }
+    /**
+     * @brief 获取树中元素个数
+     * @return 元素数量
+     * @note 时间复杂度: O(1)
+     */
+    size_t size() const noexcept { return size_; }
     
-    // Check if empty
-    bool empty() const { return root_ == nullptr; }
+    /**
+     * @brief 检查树是否为空
+     * @return 树为空返回true，否则返回false
+     * @note 时间复杂度: O(1)
+     */
+    bool empty() const noexcept { return root_ == nullptr; }
     
-    // Clear tree
-    void clear();
+    /**
+     * @brief 清空树中所有元素
+     * @note 时间复杂度: O(n)
+     */
+    void clear() noexcept;
     
-    // In-order traversal
+    /**
+     * @brief 中序遍历树，返回有序元素列表
+     * @return 升序排列的元素向量
+     * @note 时间复杂度: O(n)
+     * @note 空间复杂度: O(n)
+     */
     std::vector<T> inorderTraversal() const;
     
 private:
@@ -66,6 +142,7 @@ private:
     
     // Helper methods
     std::shared_ptr<AVLNode<T>> insert(std::shared_ptr<AVLNode<T>> node, const T& value);
+    std::shared_ptr<AVLNode<T>> insert(std::shared_ptr<AVLNode<T>> node, T&& value);
     std::shared_ptr<AVLNode<T>> remove(std::shared_ptr<AVLNode<T>> node, const T& value);
     std::shared_ptr<AVLNode<T>> findMin(std::shared_ptr<AVLNode<T>> node) const;
     std::shared_ptr<AVLNode<T>> findMax(std::shared_ptr<AVLNode<T>> node) const;
@@ -93,6 +170,11 @@ void AVLTree<T>::insert(const T& value) {
 }
 
 template<typename T>
+void AVLTree<T>::insert(T&& value) {
+    root_ = insert(root_, std::move(value));
+}
+
+template<typename T>
 std::shared_ptr<AVLNode<T>> AVLTree<T>::insert(std::shared_ptr<AVLNode<T>> node, const T& value) {
     // Standard BST insertion
     if (!node) {
@@ -104,6 +186,28 @@ std::shared_ptr<AVLNode<T>> AVLTree<T>::insert(std::shared_ptr<AVLNode<T>> node,
         node->left = insert(node->left, value);
     } else if (value > node->data) {
         node->right = insert(node->right, value);
+    } else {
+        // Duplicate values not allowed
+        return node;
+    }
+    
+    // Update height and balance
+    updateHeight(node);
+    return balance(node);
+}
+
+template<typename T>
+std::shared_ptr<AVLNode<T>> AVLTree<T>::insert(std::shared_ptr<AVLNode<T>> node, T&& value) {
+    // Standard BST insertion with move semantics
+    if (!node) {
+        size_++;
+        return std::make_shared<AVLNode<T>>(std::move(value));
+    }
+    
+    if (value < node->data) {
+        node->left = insert(node->left, std::move(value));
+    } else if (value > node->data) {
+        node->right = insert(node->right, std::move(value));
     } else {
         // Duplicate values not allowed
         return node;
@@ -133,21 +237,22 @@ std::shared_ptr<AVLNode<T>> AVLTree<T>::remove(std::shared_ptr<AVLNode<T>> node,
         node->right = remove(node->right, value);
     } else {
         // Node found - perform deletion
-        size_--;
         
-        // Case 1: No children or one child
+        // Case 1: Node with no child or one child
         if (!node->left) {
+            size_--;  // 只在真正删除节点时减少计数
             return node->right;
         } else if (!node->right) {
+            size_--;  // 只在真正删除节点时减少计数
             return node->left;
         }
         
-        // Case 2: Two children
+        // Case 2: Node with two children
         // Find inorder successor (minimum in right subtree)
         auto successor = findMin(node->right);
         node->data = successor->data;
+        // 递归删除后继节点，size_会在递归中正确处理
         node->right = remove(node->right, successor->data);
-        size_++; // Compensate for the decrement above
     }
     
     // Update height and balance
@@ -215,7 +320,7 @@ int AVLTree<T>::height() const {
 }
 
 template<typename T>
-void AVLTree<T>::clear() {
+void AVLTree<T>::clear() noexcept {
     root_ = nullptr;
     size_ = 0;
 }

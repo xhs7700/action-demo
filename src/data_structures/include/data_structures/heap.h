@@ -5,52 +5,139 @@
 #include <optional>
 #include <functional>
 #include <stdexcept>
+#include <utility>
 
 namespace data_structures {
 
 /**
- * Binary Heap (Min-Heap or Max-Heap)
- * Template-based implementation with configurable comparison
+ * @brief 二叉堆数据结构（最小堆或最大堆）
+ * 
+ * 基于完全二叉树实现的优先队列，使用数组存储。
+ * 支持自定义比较器，默认为最小堆（std::less）。
+ * 使用std::greater可创建最大堆。
+ * 
+ * @tparam T 堆中存储的元素类型
+ * @tparam Compare 比较器类型，默认为std::less<T>（最小堆）
+ * 
+ * @note 时间复杂度: insert O(log n), extractTop O(log n), top O(1)
+ * @note 空间复杂度: O(n)，其中n是元素数量
+ * @note 最小堆性质: 父节点值 <= 子节点值
+ * @note 最大堆性质: 父节点值 >= 子节点值（使用std::greater）
+ * 
+ * @example
+ * // 最小堆
+ * Heap<int> minHeap;
+ * minHeap.insert(5);
+ * minHeap.insert(2);
+ * auto min = minHeap.top();  // 返回 std::optional<int>(2)
+ * 
+ * @example
+ * // 最大堆
+ * Heap<int, std::greater<int>> maxHeap;
+ * maxHeap.insert(5);
+ * maxHeap.insert(2);
+ * auto max = maxHeap.top();  // 返回 std::optional<int>(5)
  */
 template<typename T, typename Compare = std::less<T>>
 class Heap {
 public:
-    // Constructor
+    /**
+     * @brief 默认构造函数，创建空堆
+     */
     Heap() : size_(0) {}
     
-    // Constructor with custom comparator
+    /**
+     * @brief 使用自定义比较器构造空堆
+     * @param comp 自定义比较器对象
+     */
     explicit Heap(Compare comp) : comparator_(comp), size_(0) {}
     
-    // Build heap from collection
+    /**
+     * @brief 从向量构建堆
+     * @param values 初始元素向量
+     * @note 时间复杂度: O(n)（使用buildHeap算法）
+     */
     explicit Heap(const std::vector<T>& values);
+    
+    /**
+     * @brief 从向量构建堆，使用自定义比较器
+     * @param values 初始元素向量
+     * @param comp 自定义比较器对象
+     * @note 时间复杂度: O(n)
+     */
     Heap(const std::vector<T>& values, Compare comp);
     
-    // Insert element
+    /**
+     * @brief 插入元素（左值版本）
+     * @param value 要插入的元素（左值引用）
+     * @note 时间复杂度: O(log n)
+     */
     void insert(const T& value);
     
-    // Extract top element
+    /**
+     * @brief 插入元素（右值版本）
+     * @param value 要插入的元素（右值引用，支持移动语义）
+     * @note 时间复杂度: O(log n)
+     */
+    void insert(T&& value);
+    
+    /**
+     * @brief 提取并移除堆顶元素
+     * @return std::optional<T>，包含堆顶元素；堆为空时返回std::nullopt
+     * @note 时间复杂度: O(log n)
+     */
     std::optional<T> extractTop();
     
-    // Peek top element without removal
+    /**
+     * @brief 查看堆顶元素（不移除）
+     * @return std::optional<T>，包含堆顶元素；堆为空时返回std::nullopt
+     * @note 时间复杂度: O(1)
+     */
     std::optional<T> top() const;
     
-    // Get size
-    size_t size() const { return size_; }
+    /**
+     * @brief 获取堆中元素个数
+     * @return 堆中元素的数量
+     * @note 时间复杂度: O(1)
+     */
+    size_t size() const noexcept { return size_; }
     
-    // Check if empty
-    bool empty() const { return size_ == 0; }
+    /**
+     * @brief 检查堆是否为空
+     * @return 堆为空返回true，否则返回false
+     * @note 时间复杂度: O(1)
+     */
+    bool empty() const noexcept { return size_ == 0; }
     
-    // Clear heap
-    void clear();
+    /**
+     * @brief 清空堆中所有元素
+     * @note 时间复杂度: O(n)
+     */
+    void clear() noexcept;
     
 private:
-    std::vector<T> data_;
-    Compare comparator_;
-    size_t size_;
+    std::vector<T> data_;       ///< 内部存储数组
+    Compare comparator_;        ///< 比较器对象
+    size_t size_;               ///< 堆中元素个数
     
     // Helper methods
+    
+    /**
+     * @brief 向上调整堆，维护堆性质
+     * @param index 起始索引
+     */
     void heapifyUp(size_t index);
+    
+    /**
+     * @brief 向下调整堆，维护堆性质
+     * @param index 起始索引
+     */
     void heapifyDown(size_t index);
+    
+    /**
+     * @brief 从无序数组构建堆
+     * @note 时间复杂度: O(n)
+     */
     void buildHeap();
     
     // Index helpers
@@ -84,6 +171,13 @@ void Heap<T, Compare>::insert(const T& value) {
 }
 
 template<typename T, typename Compare>
+void Heap<T, Compare>::insert(T&& value) {
+    data_.push_back(std::move(value));
+    size_++;
+    heapifyUp(size_ - 1);
+}
+
+template<typename T, typename Compare>
 std::optional<T> Heap<T, Compare>::extractTop() {
     if (size_ == 0) {
         return std::nullopt;
@@ -111,7 +205,7 @@ std::optional<T> Heap<T, Compare>::top() const {
 }
 
 template<typename T, typename Compare>
-void Heap<T, Compare>::clear() {
+void Heap<T, Compare>::clear() noexcept {
     data_.clear();
     size_ = 0;
 }

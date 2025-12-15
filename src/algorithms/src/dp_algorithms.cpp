@@ -1,9 +1,23 @@
 #include "algorithms/dp_algorithms.h"
 #include <algorithm>
+#include <stdexcept>
 
 namespace algorithms {
 
 int knapsack01(const std::vector<int>& weights, const std::vector<int>& values, int capacity) {
+    // 输入验证
+    if (weights.size() != values.size()) {
+        throw std::invalid_argument("权重数组和价值数组的大小必须一致");
+    }
+    
+    if (capacity < 0) {
+        throw std::invalid_argument("背包容量不能为负数");
+    }
+    
+    if (capacity > 100000) {
+        throw std::invalid_argument("背包容量过大（最大支持100000）");
+    }
+    
     int n = static_cast<int>(weights.size());
     if (n == 0 || capacity <= 0) return 0;
 

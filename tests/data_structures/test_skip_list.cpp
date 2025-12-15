@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "data_structures/skip_list.h"
 #include <string>
+#include <climits>
+#include <algorithm>
 
 // Test Skip List - Basic Operations
 TEST(SkipListTest, BasicOperations) {
@@ -267,4 +269,222 @@ TEST(SkipListTest, MixedOperations) {
     
     skipList.clear();
     EXPECT_TRUE(skipList.empty());
+}
+
+// ========== 新增：边界测试 ==========
+
+// 测试INT_MAX和INT_MIN值
+TEST(SkipListTest, ExtremeValues) {
+    data_structures::SkipList<int> skipList;
+    
+    skipList.insert(INT_MAX);
+    skipList.insert(INT_MIN);
+    skipList.insert(0);
+    skipList.insert(-1000);
+    skipList.insert(1000);
+    
+    EXPECT_EQ(skipList.size(), 5);
+    
+    EXPECT_TRUE(skipList.search(INT_MAX));
+    EXPECT_TRUE(skipList.search(INT_MIN));
+    EXPECT_TRUE(skipList.search(0));
+    EXPECT_TRUE(skipList.search(-1000));
+    EXPECT_TRUE(skipList.search(1000));
+}
+
+// 测试删除不存在元素
+TEST(SkipListTest, RemoveNonExistent) {
+    data_structures::SkipList<int> skipList;
+    
+    skipList.insert(1);
+    skipList.insert(2);
+    skipList.insert(3);
+    
+    EXPECT_EQ(skipList.size(), 3);
+    
+    EXPECT_FALSE(skipList.remove(100));
+    EXPECT_EQ(skipList.size(), 3);
+    
+    EXPECT_FALSE(skipList.remove(0));
+    EXPECT_EQ(skipList.size(), 3);
+}
+
+// 测试重复元素插入和删除
+TEST(SkipListTest, DuplicateInsertAndRemove) {
+    data_structures::SkipList<int> skipList;
+    
+    skipList.insert(42);
+    skipList.insert(42);
+    skipList.insert(42);
+    
+    EXPECT_EQ(skipList.size(), 1);
+    EXPECT_TRUE(skipList.search(42));
+    
+    EXPECT_TRUE(skipList.remove(42));
+    EXPECT_EQ(skipList.size(), 0);
+    EXPECT_FALSE(skipList.search(42));
+    
+    // 再次删除应该失败
+    EXPECT_FALSE(skipList.remove(42));
+}
+
+// ========== 新增：压力测试 ==========
+
+// 测试大规模插入（1000个元素）
+TEST(SkipListTest, LargeScaleInsert) {
+    data_structures::SkipList<int> skipList;
+    
+    // 插入1000个元素
+    for (int i = 0; i < 1000; i++) {
+        skipList.insert(i);
+    }
+    
+    EXPECT_EQ(skipList.size(), 1000);
+    
+    // 验证部分元素
+    EXPECT_TRUE(skipList.search(0));
+    EXPECT_TRUE(skipList.search(500));
+    EXPECT_TRUE(skipList.search(999));
+    EXPECT_FALSE(skipList.search(1000));
+    EXPECT_FALSE(skipList.search(-1));
+}
+
+// 测试大规模随机删除
+TEST(SkipListTest, LargeScaleRandomRemove) {
+    data_structures::SkipList<int> skipList;
+    
+    // 插入500个元素
+    for (int i = 0; i < 500; i++) {
+        skipList.insert(i);
+    }
+    
+    EXPECT_EQ(skipList.size(), 500);
+    
+    // 删除一半（偶数）
+    for (int i = 0; i < 500; i += 2) {
+        EXPECT_TRUE(skipList.remove(i));
+    }
+    
+    EXPECT_EQ(skipList.size(), 250);
+    
+    // 验证偶数已删除
+    for (int i = 0; i < 500; i += 2) {
+        EXPECT_FALSE(skipList.search(i));
+    }
+    
+    // 验证奇数仍存在
+    for (int i = 1; i < 500; i += 2) {
+        EXPECT_TRUE(skipList.search(i));
+    }
+}
+
+// 测试删除后跳表仍然正确
+TEST(SkipListTest, CorrectnessAfterRemove) {
+    data_structures::SkipList<int> skipList;
+    
+    // 插入100个元素
+    for (int i = 1; i <= 100; i++) {
+        skipList.insert(i);
+    }
+    
+    // 随机删除一些元素
+    std::vector<int> toRemove = {5, 15, 25, 35, 45, 55, 65, 75, 85, 95};
+    for (int val : toRemove) {
+        EXPECT_TRUE(skipList.remove(val));
+    }
+    
+    EXPECT_EQ(skipList.size(), 90);
+    
+    // 验证删除的元素不存在
+    for (int val : toRemove) {
+        EXPECT_FALSE(skipList.search(val));
+    }
+    
+    // 验证其他元素仍存在
+    for (int i = 1; i <= 100; i++) {
+        bool shouldExist = (std::find(toRemove.begin(), toRemove.end(), i) == toRemove.end());
+        EXPECT_EQ(skipList.search(i), shouldExist);
+    }
+}
+
+// ========== 新增：性能特性测试（可选） ==========
+
+// 测试层数分布合理性（大部分节点层数较低）
+TEST(SkipListTest, LevelDistribution) {
+    data_structures::SkipList<int> skipList;
+    
+    // 插入大量元素
+    for (int i = 0; i < 200; i++) {
+        skipList.insert(i);
+    }
+    
+    EXPECT_EQ(skipList.size(), 200);
+    
+    // 验证maxLevel合理（应该远小于元素数量）
+    // 对于200个元素，理论上maxLevel约为log2(200) ≈ 7-8
+    EXPECT_LE(skipList.maxLevel(), 15);
+    EXPECT_GT(skipList.maxLevel(), 0);
+}
+
+// 测试交替插入删除操作
+TEST(SkipListTest, AlternatingInsertRemove) {
+    data_structures::SkipList<int> skipList;
+    
+    for (int i = 0; i < 100; i++) {
+        skipList.insert(i);
+        skipList.insert(i + 100);
+        
+        EXPECT_TRUE(skipList.remove(i));
+    }
+    
+    EXPECT_EQ(skipList.size(), 100);
+    
+    // 验证0-99已被删除
+    for (int i = 0; i < 100; i++) {
+        EXPECT_FALSE(skipList.search(i));
+    }
+    
+    // 验证100-199仍存在
+    for (int i = 100; i < 200; i++) {
+        EXPECT_TRUE(skipList.search(i));
+    }
+}
+
+// 测试连续插入相同元素
+TEST(SkipListTest, ConsecutiveDuplicateInserts) {
+    data_structures::SkipList<int> skipList;
+    
+    for (int i = 0; i < 50; i++) {
+        skipList.insert(42);
+    }
+    
+    EXPECT_EQ(skipList.size(), 1);
+    EXPECT_TRUE(skipList.search(42));
+}
+
+// 测试清空后重新使用
+TEST(SkipListTest, ReuseAfterClear) {
+    data_structures::SkipList<int> skipList;
+    
+    // 第一轮
+    for (int i = 0; i < 50; i++) {
+        skipList.insert(i);
+    }
+    EXPECT_EQ(skipList.size(), 50);
+    
+    skipList.clear();
+    EXPECT_EQ(skipList.size(), 0);
+    EXPECT_TRUE(skipList.empty());
+    
+    // 第二轮
+    for (int i = 100; i < 150; i++) {
+        skipList.insert(i);
+    }
+    EXPECT_EQ(skipList.size(), 50);
+    
+    // 验证第一轮元素不存在
+    EXPECT_FALSE(skipList.search(25));
+    
+    // 验证第二轮元素存在
+    EXPECT_TRUE(skipList.search(125));
 }

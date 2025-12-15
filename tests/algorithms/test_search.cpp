@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "algorithms/search.h"
 #include <vector>
+#include <climits>
 
 // 测试二分查找 - 找到目标值
 TEST(BinarySearchTest, FindTarget) {
@@ -219,4 +220,147 @@ TEST(FibonacciSearchTest, BoundaryCases) {
     std::vector<int> small = {1, 2, 3};
     EXPECT_EQ(algorithms::fibonacciSearch(small, 100), -1);
     EXPECT_EQ(algorithms::fibonacciSearch(small, -1), -1);
+}
+
+// ========== 新增：通用边界和极端情况测试 ==========
+
+// 测试二分查找 - 边界值（INT_MAX, INT_MIN）
+TEST(BinarySearchTest, ExtremeValues) {
+    std::vector<int> arr = {INT_MIN, -1000, 0, 1000, INT_MAX};
+    
+    EXPECT_EQ(algorithms::binarySearch(arr, INT_MIN), 0);
+    EXPECT_EQ(algorithms::binarySearch(arr, INT_MAX), 4);
+    EXPECT_EQ(algorithms::binarySearch(arr, 0), 2);
+    EXPECT_EQ(algorithms::binarySearch(arr, INT_MIN + 1), -1);
+    EXPECT_EQ(algorithms::binarySearch(arr, INT_MAX - 1), -1);
+}
+
+// 测试二分查找 - 第一个和最后一个元素
+TEST(BinarySearchTest, FirstAndLastElement) {
+    std::vector<int> arr = {5, 10, 15, 20, 25, 30, 35};
+    
+    EXPECT_EQ(algorithms::binarySearch(arr, 5), 0);   // 第一个
+    EXPECT_EQ(algorithms::binarySearch(arr, 35), 6);  // 最后一个
+}
+
+// 测试二分查找 - 大规模已排序数组
+TEST(BinarySearchTest, LargeScaleSortedArray) {
+    std::vector<int> arr(1000);
+    for (int i = 0; i < 1000; i++) {
+        arr[i] = i * 2;  // 0, 2, 4, 6, ..., 1998
+    }
+    
+    EXPECT_EQ(algorithms::binarySearch(arr, 0), 0);
+    EXPECT_EQ(algorithms::binarySearch(arr, 500), 250);
+    EXPECT_EQ(algorithms::binarySearch(arr, 1998), 999);
+    EXPECT_EQ(algorithms::binarySearch(arr, 1), -1);     // 不存在
+    EXPECT_EQ(algorithms::binarySearch(arr, 1999), -1);  // 不存在
+}
+
+// 测试线性查找 - 边界值（INT_MAX, INT_MIN）
+TEST(LinearSearchTest, ExtremeValues) {
+    std::vector<int> arr = {100, INT_MIN, -50, 0, 50, INT_MAX};
+    
+    EXPECT_EQ(algorithms::linearSearch(arr, INT_MIN), 1);
+    EXPECT_EQ(algorithms::linearSearch(arr, INT_MAX), 5);
+    EXPECT_EQ(algorithms::linearSearch(arr, 0), 3);
+}
+
+// 测试线性查找 - 第一个和最后一个元素
+TEST(LinearSearchTest, FirstAndLastElement) {
+    std::vector<int> arr = {42, 17, 89, 23, 56};
+    
+    EXPECT_EQ(algorithms::linearSearch(arr, 42), 0);  // 第一个
+    EXPECT_EQ(algorithms::linearSearch(arr, 56), 4);  // 最后一个
+}
+
+// 测试插值查找 - 边界值（INT_MAX, INT_MIN）
+TEST(InterpolationSearchTest, ExtremeValues) {
+    std::vector<int> arr = {INT_MIN, -1000, 0, 1000, INT_MAX};
+    
+    EXPECT_EQ(algorithms::interpolationSearch(arr, INT_MIN), 0);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, INT_MAX), 4);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 0), 2);
+}
+
+// 测试插值查找 - 第一个和最后一个元素
+TEST(InterpolationSearchTest, FirstAndLastElement) {
+    std::vector<int> arr = {1, 5, 10, 15, 20, 25, 30};
+    
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 1), 0);   // 第一个
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 30), 6);  // 最后一个
+}
+
+// 测试插值查找 - 非均匀分布数据
+TEST(InterpolationSearchTest, NonUniformDistribution) {
+    // 前半部分密集，后半部分稀疏
+    std::vector<int> arr = {1, 2, 3, 4, 5, 100, 200, 300, 400, 500};
+    
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 3), 2);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 200), 6);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 50), -1);   // 不存在
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 250), -1);  // 不存在
+}
+
+// 测试插值查找 - 大规模数据
+TEST(InterpolationSearchTest, LargeScaleArray) {
+    std::vector<int> arr(1000);
+    for (int i = 0; i < 1000; i++) {
+        arr[i] = i * 3;  // 0, 3, 6, 9, ..., 2997
+    }
+    
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 0), 0);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 1500), 500);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 2997), 999);
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 1), -1);  // 不存在
+}
+
+// 测试斐波那契查找 - 边界值（INT_MAX, INT_MIN）
+TEST(FibonacciSearchTest, ExtremeValues) {
+    std::vector<int> arr = {INT_MIN, -500, 0, 500, INT_MAX};
+    
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, INT_MIN), 0);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, INT_MAX), 4);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 0), 2);
+}
+
+// 测试斐波那契查找 - 第一个和最后一个元素
+TEST(FibonacciSearchTest, FirstAndLastElement) {
+    std::vector<int> arr = {2, 4, 6, 8, 10, 12, 14, 16};
+    
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 2), 0);   // 第一个
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 16), 7);  // 最后一个
+}
+
+// 测试斐波那契查找 - 均匀分布数据
+TEST(FibonacciSearchTest, UniformDistribution) {
+    std::vector<int> arr = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 10), 0);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 50), 4);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 100), 9);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 35), -1);  // 不存在
+}
+
+// 测试斐波那契查找 - 非均匀分布数据
+TEST(FibonacciSearchTest, NonUniformDistribution) {
+    std::vector<int> arr = {1, 2, 3, 4, 5, 50, 100, 150, 200, 250};
+    
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 3), 2);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 150), 7);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 25), -1);  // 不存在
+}
+
+// 测试斐波那契查找 - 超大规模数组
+TEST(FibonacciSearchTest, VeryLargeArray) {
+    std::vector<int> arr(1000);
+    for (int i = 0; i < 1000; i++) {
+        arr[i] = i * 5;  // 0, 5, 10, 15, ..., 4995
+    }
+    
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 0), 0);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 2500), 500);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 4995), 999);
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 3), -1);     // 不存在
+    EXPECT_EQ(algorithms::fibonacciSearch(arr, 5000), -1);  // 不存在
 }

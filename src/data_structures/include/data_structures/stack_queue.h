@@ -2,78 +2,180 @@
 #define DATA_STRUCTURES_STACK_QUEUE_H
 
 #include <vector>
+#include <deque>
 #include <optional>
 #include <stdexcept>
+#include <utility>
 
 namespace data_structures {
 
 /**
- * 栈（后进先出）
+ * @brief 栈数据结构（后进先出，LIFO）
+ * 
+ * 基于std::vector实现的泛型栈，支持高效的压栈和弹栈操作。
+ * 栈遵循后进先出原则，只能在栈顶进行插入和删除操作。
+ * 
+ * @tparam T 栈中存储的元素类型
+ * 
+ * @note 时间复杂度: push和pop均为O(1)（摊销）
+ * @note 空间复杂度: O(n)，其中n是元素数量
+ * 
+ * @example
+ * Stack<int> stack;
+ * stack.push(1);
+ * stack.push(2);
+ * auto value = stack.top();  // 返回 std::optional<int>(2)
+ * stack.pop();               // 弹出 2
  */
 template<typename T>
 class Stack {
 public:
     Stack() = default;
     
-    // 压栈
+    /**
+     * @brief 压栈操作（左值版本）
+     * @param value 要压入栈的元素（左值引用）
+     * @note 时间复杂度: O(1)（摊销）
+     */
     void push(const T& value);
     
-    // 弹栈
+    /**
+     * @brief 压栈操作（右值版本）
+     * @param value 要压入栈的元素（右值引用，支持移动语义）
+     * @note 时间复杂度: O(1)（摊销）
+     */
+    void push(T&& value);
+    
+    /**
+     * @brief 弹栈操作，移除栈顶元素
+     * @return 成功返回true，栈为空时返回false
+     * @note 时间复杂度: O(1)
+     */
     bool pop();
     
-    // 获取栈顶元素
+    /**
+     * @brief 获取栈顶元素（不移除）
+     * @return std::optional<T>，包含栈顶元素；栈为空时返回std::nullopt
+     * @note 时间复杂度: O(1)
+     */
     std::optional<T> top() const;
     
-    // 获取大小
-    size_t size() const { return data_.size(); }
+    /**
+     * @brief 获取栈中元素个数
+     * @return 栈中元素的数量
+     * @note 时间复杂度: O(1)
+     */
+    size_t size() const noexcept { return data_.size(); }
     
-    // 是否为空
-    bool empty() const { return data_.empty(); }
+    /**
+     * @brief 检查栈是否为空
+     * @return 栈为空返回true，否则返回false
+     * @note 时间复杂度: O(1)
+     */
+    bool empty() const noexcept { return data_.empty(); }
     
-    // 清空栈
-    void clear() { data_.clear(); }
+    /**
+     * @brief 清空栈中所有元素
+     * @note 时间复杂度: O(n)
+     */
+    void clear() noexcept { data_.clear(); }
     
 private:
-    std::vector<T> data_;
+    std::vector<T> data_;  ///< 内部存储容器
 };
 
 /**
- * 队列（先进先出）
+ * @brief 队列数据结构（先进先出，FIFO）
+ * 
+ * 基于std::deque实现的泛型队列，支持高效的入队和出队操作。
+ * 队列遵循先进先出原则，在队尾插入元素，在队首删除元素。
+ * 
+ * @tparam T 队列中存储的元素类型
+ * 
+ * @note 时间复杂度: enqueue和dequeue均为O(1)
+ * @note 空间复杂度: O(n)，其中n是元素数量
+ * @note 实现细节: 使用std::deque替代std::vector，确保O(1)出队性能
+ * 
+ * @example
+ * Queue<int> queue;
+ * queue.enqueue(1);
+ * queue.enqueue(2);
+ * auto value = queue.front();  // 返回 std::optional<int>(1)
+ * queue.dequeue();              // 移除 1
  */
 template<typename T>
 class Queue {
 public:
     Queue() = default;
     
-    // 入队
+    /**
+     * @brief 入队操作（左值版本）
+     * @param value 要加入队列的元素（左值引用）
+     * @note 时间复杂度: O(1)
+     */
     void enqueue(const T& value);
     
-    // 出队
+    /**
+     * @brief 入队操作（右值版本）
+     * @param value 要加入队列的元素（右值引用，支持移动语义）
+     * @note 时间复杂度: O(1)
+     */
+    void enqueue(T&& value);
+    
+    /**
+     * @brief 出队操作，移除队首元素
+     * @return 成功返回true，队列为空时返回false
+     * @note 时间复杂度: O(1)
+     */
     bool dequeue();
     
-    // 获取队首元素
+    /**
+     * @brief 获取队首元素（不移除）
+     * @return std::optional<T>，包含队首元素；队列为空时返回std::nullopt
+     * @note 时间复杂度: O(1)
+     */
     std::optional<T> front() const;
     
-    // 获取队尾元素
+    /**
+     * @brief 获取队尾元素（不移除）
+     * @return std::optional<T>，包含队尾元素；队列为空时返回std::nullopt
+     * @note 时间复杂度: O(1)
+     */
     std::optional<T> back() const;
     
-    // 获取大小
-    size_t size() const { return data_.size(); }
+    /**
+     * @brief 获取队列中元素个数
+     * @return 队列中元素的数量
+     * @note 时间复杂度: O(1)
+     */
+    size_t size() const noexcept { return data_.size(); }
     
-    // 是否为空
-    bool empty() const { return data_.empty(); }
+    /**
+     * @brief 检查队列是否为空
+     * @return 队列为空返回true，否则返回false
+     * @note 时间复杂度: O(1)
+     */
+    bool empty() const noexcept { return data_.empty(); }
     
-    // 清空队列
-    void clear() { data_.clear(); }
+    /**
+     * @brief 清空队列中所有元素
+     * @note 时间复杂度: O(n)
+     */
+    void clear() noexcept { data_.clear(); }
     
 private:
-    std::vector<T> data_;
+    std::deque<T> data_;  ///< 内部存储容器，使用deque实现O(1)出队
 };
 
 // Stack 模板实现
 template<typename T>
 void Stack<T>::push(const T& value) {
     data_.push_back(value);
+}
+
+template<typename T>
+void Stack<T>::push(T&& value) {
+    data_.push_back(std::move(value));
 }
 
 template<typename T>
@@ -100,11 +202,16 @@ void Queue<T>::enqueue(const T& value) {
 }
 
 template<typename T>
+void Queue<T>::enqueue(T&& value) {
+    data_.push_back(std::move(value));
+}
+
+template<typename T>
 bool Queue<T>::dequeue() {
     if (data_.empty()) {
         return false;
     }
-    data_.erase(data_.begin());
+    data_.pop_front();  // 使用deque的pop_front，O(1)复杂度
     return true;
 }
 

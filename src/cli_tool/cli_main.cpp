@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "algorithms/sort.h"
 #include "algorithms/search.h"
 
@@ -81,6 +82,14 @@ int main(int argc, char* argv[]) {
                 std::cerr << "错误: 无效的数字 '" << argv[i] << "'" << std::endl;
                 return 1;
             }
+        }
+        
+        // 检查数组是否已排序
+        bool is_sorted = std::is_sorted(numbers.begin(), numbers.end());
+        
+        if (!is_sorted) {
+            std::cout << "警告: 输入数组未排序，自动排序后再执行二分查找..." << std::endl;
+            algorithms::quickSort(numbers);
         }
         
         std::cout << "搜索数组: ";

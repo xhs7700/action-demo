@@ -43,7 +43,7 @@ int interpolationSearch(const std::vector<int>& arr, int target) {
             return -1;
         }
 
-        // 计算插值位置
+        // 计算插值位置（使用long long避免溢出）
         int denominator = arr[high] - arr[low];
         if (denominator == 0) {
             // 当所有元素相等时，回退到线性查找
@@ -54,7 +54,14 @@ int interpolationSearch(const std::vector<int>& arr, int target) {
             }
             return -1;
         }
-        int pos = low + ((target - arr[low]) * (high - low)) / denominator;
+        
+        // 使用long long进行中间计算，避免整数溢出
+        long long numerator = static_cast<long long>(target - arr[low]) * (high - low);
+        int pos = low + static_cast<int>(numerator / denominator);
+        
+        // 确保pos在有效范围内
+        if (pos < low) pos = low;
+        if (pos > high) pos = high;
 
         if (arr[pos] == target) {
             return pos;
