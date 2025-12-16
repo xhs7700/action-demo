@@ -24,6 +24,7 @@ add_executable(data_structures_tests
     data_structures/test_heap.cpp
     data_structures/test_avl_tree.cpp
     data_structures/test_skip_list.cpp
+    data_structures/test_btreemap.cpp
 )
 
 target_link_libraries(data_structures_tests
