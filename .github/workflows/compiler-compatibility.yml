@@ -62,12 +62,12 @@ jobs:
 
   clang-versions:
     name: Clang ${{ matrix.clang_version }} - C++${{ matrix.cpp_standard }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 for Clang 13-18 support
     
     strategy:
       fail-fast: false
       matrix:
-        clang_version: ['12', '13', '14', '15', '16']
+        clang_version: ['13', '14', '15', '16', '17', '18']
         cpp_standard: ['17', '20']
     
     steps:
@@ -76,8 +76,6 @@ jobs:
     
     - name: Install Clang ${{ matrix.clang_version }}
       run: |
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
         sudo ./llvm.sh ${{ matrix.clang_version }}
@@ -178,7 +176,7 @@ jobs:
         echo "Tested across multiple compiler versions and C++ standards:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "- **GCC**: 9, 10, 11, 12, 13" >> $GITHUB_STEP_SUMMARY
-        echo "- **Clang**: 12, 13, 14, 15, 16" >> $GITHUB_STEP_SUMMARY
+        echo "- **Clang**: 13, 14, 15, 16, 17, 18" >> $GITHUB_STEP_SUMMARY
         echo "- **MSVC**: 2019, 2022" >> $GITHUB_STEP_SUMMARY
         echo "- **C++ Standards**: C++17, C++20" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
