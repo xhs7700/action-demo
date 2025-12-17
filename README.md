@@ -1,6 +1,10 @@
 # CMake GitHub Actions Demo
 
 [![CI](https://github.com/YOUR_USERNAME/action-demo/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
+[![Code Coverage](https://github.com/YOUR_USERNAME/action-demo/workflows/Code%20Coverage/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
+[![CodeQL](https://github.com/YOUR_USERNAME/action-demo/workflows/CodeQL%20Security%20Scan/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
+[![Documentation](https://github.com/YOUR_USERNAME/action-demo/workflows/Documentation/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
+[![Compiler Compatibility](https://github.com/YOUR_USERNAME/action-demo/workflows/Compiler%20Compatibility/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
 
 一个使用 CMake 构建系统的 C++ 示例项目，完整展示 GitHub Actions CI/CD 工作流的最佳实践。
 
@@ -185,7 +189,11 @@ ctest --test-dir build --output-on-failure
 
 ## CI/CD 工作流
 
-GitHub Actions 自动化流程：
+GitHub Actions 自动化流程包含多个工作流，展示完整的 DevOps 最佳实践：
+
+### 1. 持续集成 (CI)
+
+**文件**: `.github/workflows/ci.yml`
 
 - **构建矩阵**：
   - 平台：Ubuntu、macOS、Windows
@@ -203,6 +211,115 @@ GitHub Actions 自动化流程：
 - **优化**：
   - 使用缓存加速构建
   - 并行编译（-j 4）
+
+### 2. 代码覆盖率 (Code Coverage)
+
+**文件**: `.github/workflows/code-coverage.yml`
+
+- **功能**：
+  - 使用 lcov 生成覆盖率报告
+  - 上传到 Codecov 平台
+  - 在 PR 中自动评论覆盖率百分比
+  - 检查覆盖率阈值（80%）
+  - 生成 HTML 覆盖率报告
+
+- **触发条件**：push 到主分支、PR
+
+### 3. 安全扫描 (CodeQL)
+
+**文件**: `.github/workflows/codeql.yml`
+
+- **功能**：
+  - 使用 GitHub CodeQL 进行静态应用安全测试（SAST）
+  - 检测常见安全漏洞（缓冲区溢出、内存泄漏等）
+  - 与 GitHub Security 标签集成
+  - 生成 SARIF 报告
+
+- **触发条件**：push、PR、每周一定时运行
+
+- **扫描范围**：
+  - security-and-quality 查询集
+  - C++ 特定安全规则
+
+### 4. 文档生成 (Documentation)
+
+**文件**: `.github/workflows/documentation.yml`
+
+- **功能**：
+  - 使用 Doxygen 自动生成 API 文档
+  - 生成调用图和类图（使用 Graphviz）
+  - 部署到 GitHub Pages
+  - 检查未文档化的 API
+  - 提供文档质量统计
+
+- **触发条件**：push 到主分支、手动触发
+
+- **访问文档**：部署后可通过 GitHub Pages URL 访问
+
+### 5. 自动发布 (Release)
+
+**文件**: `.github/workflows/release.yml`
+
+- **功能**：
+  - 自动创建 GitHub Release
+  - 构建多平台发布产物：
+    - Linux (tar.gz)
+    - macOS (tar.gz)
+    - Windows (zip)
+  - 生成 SHA256 校验和
+  - 从 Git 提交历史自动生成发布说明
+  - 按类型分组变更（功能、修复、文档等）
+
+- **触发条件**：推送版本标签（v*.*.*）或手动触发
+
+- **使用方法**：
+  ```bash
+  git tag -a v1.0.0 -m "Release version 1.0.0"
+  git push origin v1.0.0
+  ```
+
+### 6. 编译器兼容性测试 (Compiler Compatibility)
+
+**文件**: `.github/workflows/compiler-compatibility.yml`
+
+- **功能**：
+  - 测试多个编译器版本和 C++ 标准组合
+  - 确保广泛的编译器兼容性
+  - 使用 Docker 容器保证环境一致性
+
+- **测试矩阵**：
+  - **GCC**: 9, 10, 11, 12, 13
+  - **Clang**: 12, 13, 14, 15, 16
+  - **MSVC**: 2019, 2022
+  - **C++ 标准**: C++17, C++20
+
+- **触发条件**：push、PR、每周日定时运行
+
+### 工作流总结
+
+| 工作流 | 目的 | 运行频率 | 平台 |
+|--------|------|----------|------|
+| CI | 构建和测试 | 每次 push/PR | Linux, macOS, Windows |
+| Code Coverage | 代码质量指标 | 每次 push/PR | Linux |
+| CodeQL | 安全扫描 | push/PR/每周 | Linux |
+| Documentation | API 文档 | push 到主分支 | Linux |
+| Release | 发布管理 | 版本标签 | Linux, macOS, Windows |
+| Compiler Compatibility | 编译器测试 | push/PR/每周 | Linux, Windows |
+
+### 配置要求
+
+某些工作流需要额外的配置：
+
+1. **Codecov** (可选)：
+   - 在 [codecov.io](https://codecov.io) 注册并获取 token
+   - 在仓库设置中添加 `CODECOV_TOKEN` secret
+
+2. **GitHub Pages**：
+   - 在仓库设置中启用 GitHub Pages
+   - 设置源为 "GitHub Actions"
+
+3. **Release**：
+   - 确保仓库有 `GITHUB_TOKEN` 权限（默认已启用）
 
 ## 开发指南
 

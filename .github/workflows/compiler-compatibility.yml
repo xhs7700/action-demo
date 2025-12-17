@@ -1,0 +1,190 @@
+name: Compiler Compatibility
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run weekly on Sunday at 3:00 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  gcc-versions:
+    name: GCC ${{ matrix.gcc_version }} - C++${{ matrix.cpp_standard }}
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:${{ matrix.gcc_version }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc_version: ['9', '10', '11', '12', '13']
+        cpp_standard: ['17', '20']
+        exclude:
+          # GCC 9 has limited C++20 support
+          - gcc_version: '9'
+            cpp_standard: '20'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install CMake
+      run: |
+        apt-get update
+        apt-get install -y cmake
+    
+    - name: Check compiler version
+      run: |
+        gcc --version
+        g++ --version
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_STANDARD=${{ matrix.cpp_standard }} \
+          -DBUILD_TESTING=ON
+    
+    - name: Build
+      run: cmake --build build --config Release -j 4
+    
+    - name: Run tests
+      run: ctest --test-dir build --output-on-failure
+    
+    - name: Build summary
+      if: always()
+      run: |
+        echo "## GCC ${{ matrix.gcc_version }} - C++${{ matrix.cpp_standard }}" >> $GITHUB_STEP_SUMMARY
+        echo "Build completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+
+  clang-versions:
+    name: Clang ${{ matrix.clang_version }} - C++${{ matrix.cpp_standard }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        clang_version: ['12', '13', '14', '15', '16']
+        cpp_standard: ['17', '20']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install Clang ${{ matrix.clang_version }}
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh ${{ matrix.clang_version }}
+        sudo apt-get install -y cmake
+    
+    - name: Set Clang as default compiler
+      run: |
+        echo "CC=clang-${{ matrix.clang_version }}" >> $GITHUB_ENV
+        echo "CXX=clang++-${{ matrix.clang_version }}" >> $GITHUB_ENV
+    
+    - name: Check compiler version
+      run: |
+        clang-${{ matrix.clang_version }} --version
+        clang++-${{ matrix.clang_version }} --version
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_STANDARD=${{ matrix.cpp_standard }} \
+          -DBUILD_TESTING=ON
+    
+    - name: Build
+      run: cmake --build build --config Release -j 4
+    
+    - name: Run tests
+      run: ctest --test-dir build --output-on-failure
+    
+    - name: Build summary
+      if: always()
+      run: |
+        echo "## Clang ${{ matrix.clang_version }} - C++${{ matrix.cpp_standard }}" >> $GITHUB_STEP_SUMMARY
+        echo "Build completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+
+  msvc-versions:
+    name: MSVC ${{ matrix.msvc_version }} - C++${{ matrix.cpp_standard }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            msvc_version: '2019'
+            cpp_standard: '17'
+          - os: windows-2019
+            msvc_version: '2019'
+            cpp_standard: '20'
+          - os: windows-2022
+            msvc_version: '2022'
+            cpp_standard: '17'
+          - os: windows-2022
+            msvc_version: '2022'
+            cpp_standard: '20'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+    
+    - name: Check compiler version
+      shell: cmd
+      run: cl
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_CXX_STANDARD=${{ matrix.cpp_standard }} `
+          -DBUILD_TESTING=ON
+    
+    - name: Build
+      run: cmake --build build --config Release -j 4
+    
+    - name: Run tests
+      run: ctest --test-dir build --build-config Release --output-on-failure
+    
+    - name: Build summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## MSVC ${{ matrix.msvc_version }} - C++${{ matrix.cpp_standard }}" >> $GITHUB_STEP_SUMMARY
+        echo "Build completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+
+  compatibility-summary:
+    name: Compatibility Test Summary
+    needs: [gcc-versions, clang-versions, msvc-versions]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Generate summary
+      run: |
+        echo "# 🔍 Compiler Compatibility Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Tested across multiple compiler versions and C++ standards:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **GCC**: 9, 10, 11, 12, 13" >> $GITHUB_STEP_SUMMARY
+        echo "- **Clang**: 12, 13, 14, 15, 16" >> $GITHUB_STEP_SUMMARY
+        echo "- **MSVC**: 2019, 2022" >> $GITHUB_STEP_SUMMARY
+        echo "- **C++ Standards**: C++17, C++20" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.gcc-versions.result }}" = "success" ] && \
+           [ "${{ needs.clang-versions.result }}" = "success" ] && \
+           [ "${{ needs.msvc-versions.result }}" = "success" ]; then
+          echo "✅ All compiler compatibility tests passed!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Some compiler compatibility tests failed. Check individual job results." >> $GITHUB_STEP_SUMMARY
+        fi
