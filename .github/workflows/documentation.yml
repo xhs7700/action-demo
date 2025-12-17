@@ -1,0 +1,144 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+# Sets permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    name: Build Doxygen Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install Doxygen and Graphviz
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+    
+    - name: Create Doxyfile if not exists
+      run: |
+        if [ ! -f Doxyfile ]; then
+          echo "Creating default Doxyfile..."
+          doxygen -g Doxyfile
+          
+          # Customize Doxyfile for this project
+          sed -i 's/PROJECT_NAME           = "My Project"/PROJECT_NAME           = "C++ Demo Project"/' Doxyfile
+          sed -i 's/PROJECT_BRIEF          =/PROJECT_BRIEF          = "CMake Best Practices with CI\/CD"/' Doxyfile
+          sed -i 's/OUTPUT_DIRECTORY       =/OUTPUT_DIRECTORY       = docs/' Doxyfile
+          sed -i 's/INPUT                  =/INPUT                  = src\//' Doxyfile
+          sed -i 's/RECURSIVE              = NO/RECURSIVE              = YES/' Doxyfile
+          sed -i 's/EXTRACT_ALL            = NO/EXTRACT_ALL            = YES/' Doxyfile
+          sed -i 's/EXTRACT_PRIVATE        = NO/EXTRACT_PRIVATE        = YES/' Doxyfile
+          sed -i 's/EXTRACT_STATIC         = NO/EXTRACT_STATIC         = YES/' Doxyfile
+          sed -i 's/HAVE_DOT               = NO/HAVE_DOT               = YES/' Doxyfile
+          sed -i 's/UML_LOOK               = NO/UML_LOOK               = YES/' Doxyfile
+          sed -i 's/CALL_GRAPH             = NO/CALL_GRAPH             = YES/' Doxyfile
+          sed -i 's/CALLER_GRAPH           = NO/CALLER_GRAPH           = YES/' Doxyfile
+          sed -i 's/GENERATE_TREEVIEW      = NO/GENERATE_TREEVIEW      = YES/' Doxyfile
+        fi
+    
+    - name: Generate documentation
+      run: doxygen Doxyfile
+    
+    - name: Check for undocumented APIs
+      run: |
+        if [ -f docs/warnings.txt ]; then
+          echo "⚠️ Documentation warnings found:"
+          cat docs/warnings.txt
+          
+          WARNING_COUNT=$(wc -l < docs/warnings.txt || echo 0)
+          echo "Total warnings: $WARNING_COUNT"
+          
+          if [ "$WARNING_COUNT" -gt 50 ]; then
+            echo "::warning::Found $WARNING_COUNT documentation warnings. Consider documenting your APIs."
+          fi
+        fi
+    
+    - name: Create index redirect
+      run: |
+        mkdir -p docs
+        if [ -d docs/html ]; then
+          # Create a simple index.html that redirects to html/index.html
+          cat > docs/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Redirecting to Documentation</title>
+          <meta http-equiv="refresh" content="0; url=html/index.html">
+          <link rel="canonical" href="html/index.html">
+        </head>
+        <body>
+          <p>Redirecting to <a href="html/index.html">documentation</a>...</p>
+        </body>
+        </html>
+        EOF
+        fi
+    
+    - name: Upload documentation artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation
+        path: docs/
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+    
+    - name: Upload artifact for Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs/'
+    
+    - name: Generate documentation summary
+      run: |
+        echo "## 📚 Documentation Generated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Doxygen documentation has been successfully generated." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -d docs/html ]; then
+          FILE_COUNT=$(find docs/html -name "*.html" | wc -l)
+          echo "- Generated HTML files: $FILE_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ -f docs/warnings.txt ]; then
+          WARNING_COUNT=$(wc -l < docs/warnings.txt)
+          echo "- Documentation warnings: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  deploy-docs:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+    
+    - name: Comment deployment URL
+      if: github.event_name == 'push'
+      run: |
+        echo "## 🚀 Documentation Deployed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Documentation is now available at:" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY

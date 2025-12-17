@@ -1,0 +1,111 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  coverage:
+    name: Generate Code Coverage Report
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ lcov
+    
+    - name: Configure CMake with coverage flags
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+          -DBUILD_TESTING=ON
+    
+    - name: Build project
+      run: cmake --build build -j 4
+    
+    - name: Run tests
+      run: ctest --test-dir build --output-on-failure
+    
+    - name: Generate coverage data
+      run: |
+        # Capture coverage info
+        lcov --directory build --capture --output-file coverage.info
+        
+        # Filter out system headers and test files
+        lcov --remove coverage.info '/usr/*' '*/tests/*' '*/build/*' --output-file coverage.info
+        
+        # List coverage data for verification
+        lcov --list coverage.info
+    
+    - name: Generate HTML coverage report
+      run: |
+        genhtml coverage.info --output-directory coverage_html
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+    
+    - name: Upload coverage HTML report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage_html/
+    
+    - name: Calculate coverage percentage
+      id: coverage
+      run: |
+        COVERAGE=$(lcov --summary coverage.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+        echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+        echo "Coverage: $COVERAGE%"
+    
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const coverage = '${{ steps.coverage.outputs.coverage }}';
+          const comment = `## 📊 Code Coverage Report
+          
+          **Coverage: ${coverage}%**
+          
+          The full coverage report is available in the workflow artifacts.
+          
+          ${coverage >= 80 ? '✅ Coverage meets the 80% threshold!' : '⚠️ Coverage is below the 80% threshold.'}`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+    
+    - name: Check coverage threshold
+      run: |
+        COVERAGE=$(lcov --summary coverage.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+        THRESHOLD=80
+        
+        echo "Current coverage: $COVERAGE%"
+        echo "Required threshold: $THRESHOLD%"
+        
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "⚠️ Coverage ($COVERAGE%) is below threshold ($THRESHOLD%)"
+          echo "This is a warning, not failing the build for demo purposes"
+          # Uncomment the line below to fail the build
+          # exit 1
+        else
+          echo "✅ Coverage meets the threshold!"
+        fi

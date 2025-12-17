@@ -1,0 +1,204 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v0.1.0'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get version
+      id: get_version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/}
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Release version: $VERSION"
+    
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        VERSION="${{ steps.get_version.outputs.version }}"
+        
+        # Get the previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        
+        echo "## What's Changed" > release_notes.md
+        echo "" >> release_notes.md
+        
+        if [ -n "$PREV_TAG" ]; then
+          echo "Changes since $PREV_TAG:" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Group commits by type
+          echo "### Features" >> release_notes.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^feat" >> release_notes.md || true
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          echo "### Bug Fixes" >> release_notes.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^fix" >> release_notes.md || true
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          echo "### Documentation" >> release_notes.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^docs" >> release_notes.md || true
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          echo "### Other Changes" >> release_notes.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^chore\|^refactor\|^test" >> release_notes.md || true
+          echo "" >> release_notes.md
+        else
+          echo "Initial release" >> release_notes.md
+        fi
+        
+        echo "" >> release_notes.md
+        echo "## Assets" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "Download the appropriate binary for your platform below." >> release_notes.md
+        
+        cat release_notes.md
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        release_name: Release ${{ steps.get_version.outputs.version }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+
+  build-release-artifacts:
+    name: Build ${{ matrix.os }} - ${{ matrix.build_type }}
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Release]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up build environment (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++
+    
+    - name: Set up build environment (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install cmake
+    
+    - name: Set up build environment (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+    
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_TESTING=OFF
+    
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }} -j 4
+    
+    - name: Package binaries (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        VERSION="${{ needs.create-release.outputs.version }}"
+        OS_NAME=$(echo "${{ matrix.os }}" | cut -d'-' -f1)
+        
+        mkdir -p release
+        cp -r build/bin/* release/ 2>/dev/null || true
+        
+        cd release
+        tar -czf ../cpp-demo-${VERSION}-${OS_NAME}-x86_64.tar.gz *
+        cd ..
+        
+        sha256sum cpp-demo-${VERSION}-${OS_NAME}-x86_64.tar.gz > cpp-demo-${VERSION}-${OS_NAME}-x86_64.tar.gz.sha256
+    
+    - name: Package binaries (Windows)
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        VERSION="${{ needs.create-release.outputs.version }}"
+        
+        mkdir -p release
+        cp -r build/${{ matrix.build_type }}/bin/* release/ 2>/dev/null || cp -r build/bin/* release/ 2>/dev/null || true
+        
+        cd release
+        7z a ../cpp-demo-${VERSION}-windows-x86_64.zip *
+        cd ..
+        
+        sha256sum cpp-demo-${VERSION}-windows-x86_64.zip > cpp-demo-${VERSION}-windows-x86_64.zip.sha256
+    
+    - name: Upload Release Asset (Linux/macOS)
+      if: runner.os != 'Windows'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./cpp-demo-${{ needs.create-release.outputs.version }}-${{ runner.os == 'Linux' && 'ubuntu' || 'macos' }}-x86_64.tar.gz
+        asset_name: cpp-demo-${{ needs.create-release.outputs.version }}-${{ runner.os == 'Linux' && 'ubuntu' || 'macos' }}-x86_64.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Release Asset Checksum (Linux/macOS)
+      if: runner.os != 'Windows'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./cpp-demo-${{ needs.create-release.outputs.version }}-${{ runner.os == 'Linux' && 'ubuntu' || 'macos' }}-x86_64.tar.gz.sha256
+        asset_name: cpp-demo-${{ needs.create-release.outputs.version }}-${{ runner.os == 'Linux' && 'ubuntu' || 'macos' }}-x86_64.tar.gz.sha256
+        asset_content_type: text/plain
+    
+    - name: Upload Release Asset (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./cpp-demo-${{ needs.create-release.outputs.version }}-windows-x86_64.zip
+        asset_name: cpp-demo-${{ needs.create-release.outputs.version }}-windows-x86_64.zip
+        asset_content_type: application/zip
+    
+    - name: Upload Release Asset Checksum (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./cpp-demo-${{ needs.create-release.outputs.version }}-windows-x86_64.zip.sha256
+        asset_name: cpp-demo-${{ needs.create-release.outputs.version }}-windows-x86_64.zip.sha256
+        asset_content_type: text/plain
