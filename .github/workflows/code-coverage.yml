@@ -38,10 +38,10 @@ jobs:
     - name: Generate coverage data
       run: |
         # Capture coverage info
-        lcov --directory build --capture --output-file coverage.info
+        lcov --directory build --capture --output-file coverage.info --ignore-errors mismatch
         
         # Filter out system headers and test files
-        lcov --remove coverage.info '/usr/*' '*/tests/*' '*/build/*' --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' '*/tests/*' '*/build/*' --output-file coverage.info --ignore-errors mismatch
         
         # List coverage data for verification
         lcov --list coverage.info
