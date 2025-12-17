@@ -1,10 +1,10 @@
 # CMake GitHub Actions Demo
 
-[![CI](https://github.com/YOUR_USERNAME/action-demo/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
-[![Code Coverage](https://github.com/YOUR_USERNAME/action-demo/workflows/Code%20Coverage/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
-[![CodeQL](https://github.com/YOUR_USERNAME/action-demo/workflows/CodeQL%20Security%20Scan/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
-[![Documentation](https://github.com/YOUR_USERNAME/action-demo/workflows/Documentation/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
-[![Compiler Compatibility](https://github.com/YOUR_USERNAME/action-demo/workflows/Compiler%20Compatibility/badge.svg)](https://github.com/YOUR_USERNAME/action-demo/actions)
+[![CI](https://github.com/xhs7700/action-demo/workflows/CI/badge.svg)](https://github.com/xhs7700/action-demo/actions)
+[![Code Coverage](https://github.com/xhs7700/action-demo/workflows/Code%20Coverage/badge.svg)](https://github.com/xhs7700/action-demo/actions)
+[![CodeQL](https://github.com/xhs7700/action-demo/workflows/CodeQL%20Security%20Scan/badge.svg)](https://github.com/xhs7700/action-demo/actions)
+[![Documentation](https://github.com/xhs7700/action-demo/workflows/Documentation/badge.svg)](https://github.com/xhs7700/action-demo/actions)
+[![Compiler Compatibility](https://github.com/xhs7700/action-demo/workflows/Compiler%20Compatibility/badge.svg)](https://github.com/xhs7700/action-demo/actions)
 
 一个使用 CMake 构建系统的 C++ 示例项目，完整展示 GitHub Actions CI/CD 工作流的最佳实践。
 
