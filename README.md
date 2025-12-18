@@ -3,7 +3,6 @@
 [![CI](https://github.com/xhs7700/action-demo/workflows/CI/badge.svg)](https://github.com/xhs7700/action-demo/actions)
 [![Code Coverage](https://github.com/xhs7700/action-demo/workflows/Code%20Coverage/badge.svg)](https://github.com/xhs7700/action-demo/actions)
 [![CodeQL](https://github.com/xhs7700/action-demo/workflows/CodeQL%20Security%20Scan/badge.svg)](https://github.com/xhs7700/action-demo/actions)
-[![Documentation](https://github.com/xhs7700/action-demo/workflows/Documentation/badge.svg)](https://github.com/xhs7700/action-demo/actions)
 [![Compiler Compatibility](https://github.com/xhs7700/action-demo/workflows/Compiler%20Compatibility/badge.svg)](https://github.com/xhs7700/action-demo/actions)
 
 一个使用 CMake 构建系统的 C++ 示例项目，完整展示 GitHub Actions CI/CD 工作流的最佳实践。
@@ -11,10 +10,10 @@
 ## 项目概述
 
 本项目包含：
-- **2 个 C++ 库模块**：`algorithms`（排序、搜索、字符串和动态规划算法）和 `data_structures`（基础和高级数据结构）
+- **2 个 C++ 库模块**：`algorithms`（排序、搜索、字符串和动态规划算法）和 `data_structures`（链表、栈队列、堆、AVL树、跳表、B树映射）
 - **2 个可执行文件**：`main_app`（演示程序）和 `cli_tool`（命令行工具）
 - **完整的单元测试套件**：使用 Google Test 框架
-- **跨平台 CI/CD**：支持 Linux、macOS 和 Windows
+- **跨平台 CI/CD**：支持 Linux、macOS 和 Windows，包含代码覆盖率、安全扫描和编译器兼容性测试
 
 ## 技术栈
 
@@ -49,11 +48,16 @@ action-demo/
 │   │   │   ├── linked_list.h    # 链表
 │   │   │   ├── stack_queue.h    # 栈和队列
 │   │   │   ├── heap.h           # 二叉堆
-│   │   │   ├── avl_tree.h       # AVL 平衡树
-│   │   │   └── skip_list.h      # 跳表
+│   │   │   ├── avl_tree.h       # AVL 平衡树（头文件实现）
+│   │   │   ├── skip_list.h      # 跳表（头文件实现）
+│   │   │   └── btreemap.h       # B树映射（头文件实现）
 │   │   └── src/
 │   │       ├── linked_list.cpp
-│   │       └── stack_queue.cpp
+│   │       ├── stack_queue.cpp
+│   │       ├── heap.cpp
+│   │       ├── avl_tree.cpp
+│   │       ├── skip_list.cpp
+│   │       └── btreemap.cpp
 │   ├── main_app/                # 主应用程序
 │   │   └── main.cpp
 │   └── cli_tool/                # 命令行工具
@@ -69,7 +73,8 @@ action-demo/
 │       ├── test_stack_queue.cpp
 │       ├── test_heap.cpp
 │       ├── test_avl_tree.cpp
-│       └── test_skip_list.cpp
+│       ├── test_skip_list.cpp
+│       └── test_btreemap.cpp
 └── CMakeLists.txt               # 根 CMake 配置
 ```
 
@@ -170,6 +175,13 @@ ctest --test-dir build --config Release --output-on-failure
   - 比平衡树实现更简单
   - 多层链表结构
 
+- **B树映射 (BTreeMap)**
+  - 自平衡多路搜索树
+  - 磁盘友好的数据结构
+  - 支持高效的范围查询
+  - O(log n) 的搜索、插入和删除
+  - 节点包含多个键值对，减少树的高度
+
 ## 测试
 
 项目包含全面的单元测试，覆盖所有核心功能：
@@ -184,8 +196,8 @@ ctest --test-dir build --output-on-failure
 ```
 
 测试统计：
-- **algorithms 库**：77 测试用例（包含排序、搜索、字符串和动态规划算法）
-- **data_structures 库**：40+ 测试用例（包含基础和高级数据结构）
+- **algorithms 库**：涵盖排序、搜索、字符串和动态规划算法的综合测试
+- **data_structures 库**：涵盖链表、栈队列、堆、AVL树、跳表和B树映射的完整测试
 
 ## CI/CD 工作流
 
@@ -241,22 +253,7 @@ GitHub Actions 自动化流程包含多个工作流，展示完整的 DevOps 最
   - security-and-quality 查询集
   - C++ 特定安全规则
 
-### 4. 文档生成 (Documentation)
-
-**文件**: `.github/workflows/documentation.yml`
-
-- **功能**：
-  - 使用 Doxygen 自动生成 API 文档
-  - 生成调用图和类图（使用 Graphviz）
-  - 部署到 GitHub Pages
-  - 检查未文档化的 API
-  - 提供文档质量统计
-
-- **触发条件**：push 到主分支、手动触发
-
-- **访问文档**：部署后可通过 GitHub Pages URL 访问
-
-### 5. 自动发布 (Release)
+### 4. 自动发布 (Release)
 
 **文件**: `.github/workflows/release.yml`
 
@@ -278,7 +275,7 @@ GitHub Actions 自动化流程包含多个工作流，展示完整的 DevOps 最
   git push origin v1.0.0
   ```
 
-### 6. 编译器兼容性测试 (Compiler Compatibility)
+### 5. 编译器兼容性测试 (Compiler Compatibility)
 
 **文件**: `.github/workflows/compiler-compatibility.yml`
 
@@ -302,7 +299,6 @@ GitHub Actions 自动化流程包含多个工作流，展示完整的 DevOps 最
 | CI | 构建和测试 | 每次 push/PR | Linux, macOS, Windows |
 | Code Coverage | 代码质量指标 | 每次 push/PR | Linux |
 | CodeQL | 安全扫描 | push/PR/每周 | Linux |
-| Documentation | API 文档 | push 到主分支 | Linux |
 | Release | 发布管理 | 版本标签 | Linux, macOS, Windows |
 | Compiler Compatibility | 编译器测试 | push/PR/每周 | Linux, Windows |
 
@@ -314,11 +310,7 @@ GitHub Actions 自动化流程包含多个工作流，展示完整的 DevOps 最
    - 在 [codecov.io](https://codecov.io) 注册并获取 token
    - 在仓库设置中添加 `CODECOV_TOKEN` secret
 
-2. **GitHub Pages**：
-   - 在仓库设置中启用 GitHub Pages
-   - 设置源为 "GitHub Actions"
-
-3. **Release**：
+2. **Release**：
    - 确保仓库有 `GITHUB_TOKEN` 权限（默认已启用）
 
 ## 开发指南
