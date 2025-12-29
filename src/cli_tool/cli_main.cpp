@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         for (int i = 2; i < argc; i++) {
             try {
                 numbers.push_back(std::stoi(argv[i]));
-            } catch (const std::exception& e) {
+            } catch (const std::exception&) {
                 std::cerr << "错误: 无效的数字 '" << argv[i] << "'" << std::endl;
                 return 1;
             }
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         int target;
         try {
             target = std::stoi(argv[2]);
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             std::cerr << "错误: 无效的目标值 '" << argv[2] << "'" << std::endl;
             return 1;
         }
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
         for (int i = 3; i < argc; i++) {
             try {
                 numbers.push_back(std::stoi(argv[i]));
-            } catch (const std::exception& e) {
+            } catch (const std::exception&) {
                 std::cerr << "错误: 无效的数字 '" << argv[i] << "'" << std::endl;
                 return 1;
             }

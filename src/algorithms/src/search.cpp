@@ -1,6 +1,7 @@
 #include "algorithms/search.h"
 
 namespace algorithms {
+namespace search {
 
 int binarySearch(const std::vector<int>& arr, int target) {
     int left = 0;
@@ -118,4 +119,5 @@ int fibonacciSearch(const std::vector<int>& arr, int target) {
     return -1; // 未找到
 }
 
+} // namespace search
 } // namespace algorithms

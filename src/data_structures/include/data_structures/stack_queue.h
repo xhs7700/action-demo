@@ -32,6 +32,13 @@ class Stack {
 public:
     Stack() = default;
     
+    // 五法则: 使用默认实现（内部vector自动处理）
+    Stack(const Stack&) = default;                    ///< 拷贝构造函数
+    Stack(Stack&&) noexcept = default;                ///< 移动构造函数
+    Stack& operator=(const Stack&) = default;         ///< 拷贝赋值运算符
+    Stack& operator=(Stack&&) noexcept = default;     ///< 移动赋值运算符
+    ~Stack() = default;                               ///< 析构函数
+    
     /**
      * @brief 压栈操作（左值版本）
      * @param value 要压入栈的元素（左值引用）
@@ -107,6 +114,13 @@ template<typename T>
 class Queue {
 public:
     Queue() = default;
+    
+    // 五法则: 使用默认实现（内部deque自动处理）
+    Queue(const Queue&) = default;                    ///< 拷贝构造函数
+    Queue(Queue&&) noexcept = default;                ///< 移动构造函数
+    Queue& operator=(const Queue&) = default;         ///< 拷贝赋值运算符
+    Queue& operator=(Queue&&) noexcept = default;     ///< 移动赋值运算符
+    ~Queue() = default;                               ///< 析构函数
     
     /**
      * @brief 入队操作（左值版本）

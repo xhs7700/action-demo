@@ -1,5 +1,6 @@
 # data_structures 库
 add_library(data_structures
+    src/exceptions.cpp
     src/linked_list.cpp
     src/stack_queue.cpp
     src/heap.cpp

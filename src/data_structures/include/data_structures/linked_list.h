@@ -46,6 +46,76 @@ public:
     LinkedList() : head_(nullptr), tail_(nullptr), size_(0) {}
     
     /**
+     * @brief 拷贝构造函数，执行深拷贝
+     * @param other 要拷贝的链表
+     * @note 时间复杂度: O(n)
+     */
+    LinkedList(const LinkedList& other) : head_(nullptr), tail_(nullptr), size_(0) {
+        // 遍历原链表，逐个拷贝节点
+        auto current = other.head_;
+        while (current) {
+            pushBack(current->data);
+            current = current->next;
+        }
+    }
+    
+    /**
+     * @brief 移动构造函数，转移所有权
+     * @param other 要移动的链表（移动后将为空）
+     * @note 时间复杂度: O(1)
+     */
+    LinkedList(LinkedList&& other) noexcept 
+        : head_(std::move(other.head_)), 
+          tail_(other.tail_), 
+          size_(other.size_) {
+        // 将源对象置为有效但未指定状态
+        other.tail_ = nullptr;
+        other.size_ = 0;
+    }
+    
+    /**
+     * @brief 拷贝赋值运算符
+     * @param other 要拷贝的链表
+     * @return 当前对象的引用
+     * @note 时间复杂度: O(n + m)，n为当前链表长度，m为源链表长度
+     */
+    LinkedList& operator=(const LinkedList& other) {
+        if (this != &other) {
+            // 使用拷贝交换惯用法 (copy-and-swap idiom)
+            LinkedList temp(other);
+            swap(temp);
+        }
+        return *this;
+    }
+    
+    /**
+     * @brief 移动赋值运算符
+     * @param other 要移动的链表
+     * @return 当前对象的引用
+     * @note 时间复杂度: O(1)
+     */
+    LinkedList& operator=(LinkedList&& other) noexcept {
+        if (this != &other) {
+            // 释放当前资源
+            clear();
+            // 转移所有权
+            head_ = std::move(other.head_);
+            tail_ = other.tail_;
+            size_ = other.size_;
+            // 将源对象置为有效但未指定状态
+            other.tail_ = nullptr;
+            other.size_ = 0;
+        }
+        return *this;
+    }
+    
+    /**
+     * @brief 析构函数，自动释放所有资源
+     * @note 使用智能指针，自动管理内存
+     */
+    ~LinkedList() = default;
+    
+    /**
      * @brief 在链表头部插入元素（左值版本）
      * @param value 要插入的元素（左值引用）
      * @note 时间复杂度: O(1)
@@ -114,6 +184,17 @@ public:
      * @note 时间复杂度: O(n)（智能指针的析构过程）
      */
     void clear();
+    
+    /**
+     * @brief 与另一个链表交换内容
+     * @param other 要交换的链表
+     * @note 时间复杂度: O(1)
+     */
+    void swap(LinkedList& other) noexcept {
+        std::swap(head_, other.head_);
+        std::swap(tail_, other.tail_);
+        std::swap(size_, other.size_);
+    }
     
 private:
     std::shared_ptr<Node<T>> head_;  ///< 头指针，拥有链表节点的所有权
