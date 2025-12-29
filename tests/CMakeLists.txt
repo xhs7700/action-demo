@@ -18,6 +18,10 @@ target_link_libraries(algorithms_tests
         gtest_main
 )
 
+if(ENABLE_ASAN OR ENABLE_UBSAN)
+    enable_sanitizers(algorithms_tests)
+endif()
+
 add_executable(data_structures_tests
     data_structures/test_linked_list.cpp
     data_structures/test_stack_queue.cpp
@@ -32,6 +36,10 @@ target_link_libraries(data_structures_tests
         Demo::data_structures
         gtest_main
 )
+
+if(ENABLE_ASAN OR ENABLE_UBSAN)
+    enable_sanitizers(data_structures_tests)
+endif()
 
 # 发现测试
 gtest_discover_tests(algorithms_tests)

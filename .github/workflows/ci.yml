@@ -73,3 +73,42 @@ jobs:
           build/lib/*
           build/${{ matrix.build_type }}/lib/*
         if-no-files-found: warn
+
+  sanitizer-checks:
+    name: Sanitizers - ${{ matrix.sanitizer }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [asan, ubsan, asan+ubsan]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++
+    
+    - name: Configure CMake (AddressSanitizer)
+      if: matrix.sanitizer == 'asan'
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DENABLE_ASAN=ON
+    
+    - name: Configure CMake (UndefinedBehaviorSanitizer)
+      if: matrix.sanitizer == 'ubsan'
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DENABLE_UBSAN=ON
+    
+    - name: Configure CMake (ASan + UBSan)
+      if: matrix.sanitizer == 'asan+ubsan'
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DENABLE_ASAN=ON -DENABLE_UBSAN=ON
+    
+    - name: Build
+      run: cmake --build build --config Debug -j 4
+    
+    - name: Run tests with sanitizers
+      run: ctest --test-dir build --build-config Debug --output-on-failure
+      env:
+        ASAN_OPTIONS: detect_leaks=1:check_initialization_order=1
+        UBSAN_OPTIONS: print_stacktrace=1

@@ -17,10 +17,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # 选项配置
 option(BUILD_TESTING "Build the testing tree" ON)
 option(ENABLE_WARNINGS "Enable compiler warnings" ON)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 
 # 导入编译器警告配置
 if(ENABLE_WARNINGS)
     include(cmake/CompilerWarnings.cmake)
+endif()
+
+# 导入 Sanitizer 配置
+if(ENABLE_ASAN OR ENABLE_UBSAN)
+    include(cmake/Sanitizers.cmake)
 endif()
 
 # 添加子目录
