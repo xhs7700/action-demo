@@ -297,8 +297,15 @@ TEST(HeapMoveTest, CopyAssignment) {
 
 TEST(MovePerformanceTest, LinkedListMoveVsCopy) {
     // 创建一个大链表
+    // Windows Debug 模式下使用较小的数据集以避免性能问题
+#if defined(_MSC_VER) && defined(_DEBUG)
+    const int testSize = 1000;
+#else
+    const int testSize = 10000;
+#endif
+    
     LinkedList<int> largeList;
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < testSize; i++) {
         largeList.pushBack(i);
     }
     
@@ -309,7 +316,7 @@ TEST(MovePerformanceTest, LinkedListMoveVsCopy) {
     auto moveDuration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     
     // 验证移动成功
-    EXPECT_EQ(movedList.size(), 10000);
+    EXPECT_EQ(movedList.size(), testSize);
     EXPECT_EQ(largeList.size(), 0);
     
     // 移动操作应该非常快（通常小于1微秒）
