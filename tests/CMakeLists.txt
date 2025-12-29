@@ -42,5 +42,5 @@ if(ENABLE_ASAN OR ENABLE_UBSAN)
 endif()
 
 # 发现测试
-gtest_discover_tests(algorithms_tests)
-gtest_discover_tests(data_structures_tests)
+gtest_discover_tests(algorithms_tests DISCOVERY_TIMEOUT 60)
+gtest_discover_tests(data_structures_tests DISCOVERY_TIMEOUT 60)
