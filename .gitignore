@@ -39,3 +39,4 @@ Testing/
 compile_commands.json
 .cache/
 logs/
+tmp/
