@@ -303,9 +303,9 @@ TEST(MovePerformanceTest, LinkedListMoveVsCopy) {
     }
     
     // 移动应该很快（O(1)）
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     LinkedList<int> movedList(std::move(largeList));
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
     auto moveDuration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     
     // 验证移动成功
