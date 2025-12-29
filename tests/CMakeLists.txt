@@ -23,6 +23,8 @@ if(ENABLE_ASAN OR ENABLE_UBSAN)
 endif()
 
 add_executable(data_structures_tests
+    data_structures/test_exceptions.cpp
+    data_structures/test_move_semantics.cpp
     data_structures/test_linked_list.cpp
     data_structures/test_stack_queue.cpp
     data_structures/test_heap.cpp

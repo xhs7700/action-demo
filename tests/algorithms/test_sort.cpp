@@ -409,3 +409,161 @@ TEST(BubbleSortTest, LargeArray) {
         EXPECT_LE(arr[i], arr[i + 1]);
     }
 }
+
+// ============================================================================
+// 泛型测试 - 测试模板化算法支持不同类型
+// ============================================================================
+
+// 测试 double 类型 - 快速排序
+TEST(GenericSortTest, QuickSortDouble) {
+    std::vector<double> arr = {3.14, 2.71, 1.41, 0.577, 2.236};
+    std::vector<double> expected = {0.577, 1.41, 2.236, 2.71, 3.14};
+    
+    algorithms::sort::quickSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试 double 类型 - 归并排序
+TEST(GenericSortTest, MergeSortDouble) {
+    std::vector<double> arr = {-1.5, 3.7, 0.0, -2.3, 1.1};
+    std::vector<double> expected = {-2.3, -1.5, 0.0, 1.1, 3.7};
+    
+    algorithms::sort::mergeSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试 string 类型 - 插入排序
+TEST(GenericSortTest, InsertionSortString) {
+    std::vector<std::string> arr = {"banana", "apple", "cherry", "date"};
+    std::vector<std::string> expected = {"apple", "banana", "cherry", "date"};
+    
+    algorithms::sort::insertionSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试 string 类型 - 选择排序
+TEST(GenericSortTest, SelectionSortString) {
+    std::vector<std::string> arr = {"zebra", "aardvark", "monkey", "elephant"};
+    std::vector<std::string> expected = {"aardvark", "elephant", "monkey", "zebra"};
+    
+    algorithms::sort::selectionSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试 string 类型 - 冒泡排序
+TEST(GenericSortTest, BubbleSortString) {
+    std::vector<std::string> arr = {"dog", "cat", "bird", "fish"};
+    std::vector<std::string> expected = {"bird", "cat", "dog", "fish"};
+    
+    algorithms::sort::bubbleSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试自定义比较器 - 降序排序（int）
+TEST(GenericSortTest, CustomComparatorDescending) {
+    std::vector<int> arr = {1, 5, 3, 9, 2};
+    std::vector<int> expected = {9, 5, 3, 2, 1};
+    
+    algorithms::sort::quickSort(arr, std::greater<int>());
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试自定义比较器 - 字符串按长度排序
+TEST(GenericSortTest, CustomComparatorStringLength) {
+    std::vector<std::string> arr = {"a", "abc", "ab", "abcd"};
+    std::vector<std::string> expected = {"a", "ab", "abc", "abcd"};
+    
+    auto lengthCompare = [](const std::string& a, const std::string& b) {
+        return a.length() < b.length();
+    };
+    
+    algorithms::sort::mergeSort(arr, lengthCompare);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试自定义比较器 - double 降序
+TEST(GenericSortTest, CustomComparatorDoubleDescending) {
+    std::vector<double> arr = {1.1, 3.3, 2.2, 5.5, 4.4};
+    std::vector<double> expected = {5.5, 4.4, 3.3, 2.2, 1.1};
+    
+    algorithms::sort::insertionSort(arr, std::greater<double>());
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试自定义结构体排序
+TEST(GenericSortTest, CustomStructSort) {
+    struct Person {
+        std::string name;
+        int age;
+        
+        bool operator==(const Person& other) const {
+            return name == other.name && age == other.age;
+        }
+    };
+    
+    std::vector<Person> arr = {
+        {"Alice", 30},
+        {"Bob", 25},
+        {"Charlie", 35},
+        {"David", 20}
+    };
+    
+    std::vector<Person> expected = {
+        {"David", 20},
+        {"Bob", 25},
+        {"Alice", 30},
+        {"Charlie", 35}
+    };
+    
+    auto ageCompare = [](const Person& a, const Person& b) {
+        return a.age < b.age;
+    };
+    
+    algorithms::sort::quickSort(arr, ageCompare);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试向后兼容性 - 旧命名空间仍然可用
+TEST(BackwardCompatibilityTest, OldNamespaceStillWorks) {
+    std::vector<int> arr = {5, 2, 8, 1, 9};
+    std::vector<int> expected = {1, 2, 5, 8, 9};
+    
+    // 使用旧的命名空间调用
+    algorithms::quickSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试新命名空间
+TEST(NewNamespaceTest, SortNamespaceWorks) {
+    std::vector<int> arr = {5, 2, 8, 1, 9};
+    std::vector<int> expected = {1, 2, 5, 8, 9};
+    
+    // 使用新的命名空间调用
+    algorithms::sort::quickSort(arr);
+    
+    EXPECT_EQ(arr, expected);
+}
+
+// 测试混合使用新旧命名空间
+TEST(MixedNamespaceTest, BothNamespacesWork) {
+    std::vector<int> arr1 = {5, 2, 8, 1, 9};
+    std::vector<int> arr2 = {5, 2, 8, 1, 9};
+    std::vector<int> expected = {1, 2, 5, 8, 9};
+    
+    algorithms::quickSort(arr1);  // 旧命名空间
+    algorithms::sort::quickSort(arr2);  // 新命名空间
+    
+    EXPECT_EQ(arr1, expected);
+    EXPECT_EQ(arr2, expected);
+    EXPECT_EQ(arr1, arr2);
+}

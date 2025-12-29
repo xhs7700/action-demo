@@ -46,6 +46,13 @@ public:
      */
     Heap() : size_(0) {}
     
+    // 五法则: 使用默认实现（内部vector和comparator自动处理）
+    Heap(const Heap&) = default;                      ///< 拷贝构造函数
+    Heap(Heap&&) noexcept = default;                  ///< 移动构造函数
+    Heap& operator=(const Heap&) = default;           ///< 拷贝赋值运算符
+    Heap& operator=(Heap&&) noexcept = default;       ///< 移动赋值运算符
+    ~Heap() = default;                                ///< 析构函数
+    
     /**
      * @brief 使用自定义比较器构造空堆
      * @param comp 自定义比较器对象

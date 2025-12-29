@@ -4,6 +4,7 @@
 #include <vector>
 
 namespace algorithms {
+namespace search {
 
 /**
  * @brief 使用二分查找算法在已排序数组中查找目标值
@@ -21,7 +22,7 @@ namespace algorithms {
  * 
  * @example
  * std::vector<int> arr = {1, 3, 5, 7, 9};
- * int index = algorithms::binarySearch(arr, 5);
+ * int index = algorithms::search::binarySearch(arr, 5);
  * // index is 2
  */
 int binarySearch(const std::vector<int>& arr, int target);
@@ -42,7 +43,7 @@ int binarySearch(const std::vector<int>& arr, int target);
  * 
  * @example
  * std::vector<int> arr = {4, 2, 7, 1, 5};
- * int index = algorithms::linearSearch(arr, 7);
+ * int index = algorithms::search::linearSearch(arr, 7);
  * // index is 2
  */
 int linearSearch(const std::vector<int>& arr, int target);
@@ -64,7 +65,7 @@ int linearSearch(const std::vector<int>& arr, int target);
  * 
  * @example
  * std::vector<int> arr = {10, 20, 30, 40, 50};
- * int index = algorithms::interpolationSearch(arr, 30);
+ * int index = algorithms::search::interpolationSearch(arr, 30);
  * // index is 2
  */
 int interpolationSearch(const std::vector<int>& arr, int target);
@@ -86,10 +87,18 @@ int interpolationSearch(const std::vector<int>& arr, int target);
  * 
  * @example
  * std::vector<int> arr = {1, 2, 3, 5, 8, 13, 21};
- * int index = algorithms::fibonacciSearch(arr, 8);
+ * int index = algorithms::search::fibonacciSearch(arr, 8);
  * // index is 4
  */
 int fibonacciSearch(const std::vector<int>& arr, int target);
+
+} // namespace search
+
+// 向后兼容层：将新命名空间中的符号导入旧命名空间
+using search::binarySearch;
+using search::linearSearch;
+using search::interpolationSearch;
+using search::fibonacciSearch;
 
 } // namespace algorithms
 
