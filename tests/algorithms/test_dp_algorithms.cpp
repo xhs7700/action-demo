@@ -292,3 +292,11 @@ TEST(GetLongestCommonSubsequenceTest, OneIsSubsequence) {
     std::string result = algorithms::getLongestCommonSubsequence(s1, s2);
     EXPECT_EQ(result, "ACE");
 }
+
+TEST(GetLongestCommonSubsequenceTest, SpecificBacktrackPath) {
+    std::string s1 = "ABC";
+    std::string s2 = "AC";
+
+    std::string result = algorithms::getLongestCommonSubsequence(s1, s2);
+    EXPECT_EQ(result, "AC");
+}
