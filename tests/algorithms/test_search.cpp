@@ -364,3 +364,18 @@ TEST(FibonacciSearchTest, VeryLargeArray) {
     EXPECT_EQ(algorithms::fibonacciSearch(arr, 3), -1);     // 不存在
     EXPECT_EQ(algorithms::fibonacciSearch(arr, 5000), -1);  // 不存在
 }
+
+TEST(InterpolationSearchTest, SingleElementNotFound) {
+    std::vector<int> arr = {5};
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 3), -1);
+}
+
+TEST(InterpolationSearchTest, AllEqualNotFound) {
+    std::vector<int> arr = {7, 7, 7, 7};
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 5), -1);
+}
+
+TEST(InterpolationSearchTest, TargetInFirstHalf) {
+    std::vector<int> arr = {1, 2, 3, 4, 100, 200};
+    EXPECT_EQ(algorithms::interpolationSearch(arr, 2), 1);
+}
