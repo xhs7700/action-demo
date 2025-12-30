@@ -54,13 +54,57 @@ TEST(BTreeMapTest, InsertDuplicateKey) {
     map.insert(10, "ten");
     EXPECT_EQ(map.size(), 1);
     
-    // 插入重复键应该更新值
     map.insert(10, "TEN");
     EXPECT_EQ(map.size(), 1);
     
     auto value = map.find(10);
     ASSERT_TRUE(value.has_value());
     EXPECT_EQ(value.value(), "TEN");
+}
+
+TEST(BTreeMapTest, UpdateExistingKeyInLeaf) {
+    data_structures::BTreeMap<int, int> map;
+    
+    map.insert(5, 50);
+    map.insert(10, 100);
+    map.insert(15, 150);
+    
+    map.insert(10, 999);
+    
+    EXPECT_EQ(map.size(), 3);
+    auto val = map.find(10);
+    ASSERT_TRUE(val.has_value());
+    EXPECT_EQ(val.value(), 999);
+}
+
+TEST(BTreeMapTest, UpdateExistingKeyWithMove) {
+    data_structures::BTreeMap<std::string, std::string> map;
+    
+    map.insert("key1", "value1");
+    
+    std::string newKey = "key1";
+    std::string newValue = "UPDATED";
+    map.insert(std::move(newKey), std::move(newValue));
+    
+    EXPECT_EQ(map.size(), 1);
+    auto val = map.find("key1");
+    ASSERT_TRUE(val.has_value());
+    EXPECT_EQ(val.value(), "UPDATED");
+}
+
+TEST(BTreeMapTest, UpdateAfterSplit) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 20; i++) {
+        map.insert(i, i * 10);
+    }
+    
+    map.insert(10, 12345);
+    
+    EXPECT_EQ(map.size(), 20);
+    auto val = map.find(10);
+    ASSERT_TRUE(val.has_value());
+    EXPECT_EQ(val.value(), 12345);
 }
 
 TEST(BTreeMapTest, InsertTriggersSplit) {
@@ -585,4 +629,149 @@ TEST(BTreeMapTest, SingleElementOperations) {
     
     map.remove(42);
     EXPECT_TRUE(map.empty());
+}
+
+TEST(BTreeMapTest, RemoveFromInternalNode) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 50; i++) {
+        map.insert(i, i * 10);
+    }
+    
+    int initialSize = map.size();
+    EXPECT_EQ(initialSize, 50);
+    
+    EXPECT_TRUE(map.remove(25));
+    EXPECT_EQ(map.size(), 49);
+    EXPECT_FALSE(map.contains(25));
+    
+    for (int i = 1; i <= 50; i++) {
+        if (i != 25) {
+            EXPECT_TRUE(map.contains(i));
+        }
+    }
+}
+
+TEST(BTreeMapTest, RemoveWithBorrowFromLeft) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 20; i++) {
+        map.insert(i, i);
+    }
+    
+    for (int i = 15; i <= 20; i++) {
+        EXPECT_TRUE(map.remove(i));
+    }
+    
+    EXPECT_EQ(map.size(), 14);
+    
+    for (int i = 1; i <= 14; i++) {
+        EXPECT_TRUE(map.contains(i));
+    }
+}
+
+TEST(BTreeMapTest, RemoveWithBorrowFromRight) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 20; i++) {
+        map.insert(i, i);
+    }
+    
+    for (int i = 1; i <= 6; i++) {
+        EXPECT_TRUE(map.remove(i));
+    }
+    
+    EXPECT_EQ(map.size(), 14);
+    
+    for (int i = 7; i <= 20; i++) {
+        EXPECT_TRUE(map.contains(i));
+    }
+}
+
+TEST(BTreeMapTest, RemoveWithMerge) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 30; i++) {
+        map.insert(i, i);
+    }
+    
+    for (int i = 1; i <= 28; i++) {
+        EXPECT_TRUE(map.remove(i));
+    }
+    
+    EXPECT_EQ(map.size(), 2);
+    EXPECT_TRUE(map.contains(29));
+    EXPECT_TRUE(map.contains(30));
+}
+
+TEST(BTreeMapTest, RemoveAllElementsSequentially) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 30; i++) {
+        map.insert(i, i);
+    }
+    
+    for (int i = 1; i <= 30; i++) {
+        EXPECT_TRUE(map.remove(i));
+        EXPECT_EQ(map.size(), 30 - i);
+    }
+    
+    EXPECT_TRUE(map.empty());
+}
+
+TEST(BTreeMapTest, IteratorInvalidDereference) {
+    data_structures::BTreeMap<int, int> map;
+    
+    auto it = map.end();
+    EXPECT_THROW(*it, std::out_of_range);
+}
+
+TEST(BTreeMapTest, IteratorCompareEmptyStacks) {
+    data_structures::BTreeMap<int, int> map1;
+    data_structures::BTreeMap<int, int> map2;
+    
+    auto it1 = map1.begin();
+    auto it2 = map2.begin();
+    
+    EXPECT_EQ(it1, map1.end());
+    EXPECT_EQ(it2, map2.end());
+}
+
+TEST(BTreeMapTest, IteratorIncrementPastEnd) {
+    data_structures::BTreeMap<int, int> map;
+    
+    map.insert(1, 10);
+    
+    auto it = map.begin();
+    EXPECT_NE(it, map.end());
+    
+    ++it;
+    EXPECT_EQ(it, map.end());
+    
+    ++it;
+    EXPECT_EQ(it, map.end());
+}
+
+TEST(BTreeMapTest, IteratorMultipleIncrement) {
+    data_structures::BTreeMap<int, int> map;
+    
+    for (int i = 1; i <= 5; i++) {
+        map.insert(i, i * 10);
+    }
+    
+    auto it = map.begin();
+    EXPECT_EQ((*it).first, 1);
+    
+    ++it;
+    EXPECT_EQ((*it).first, 2);
+    
+    ++it;
+    EXPECT_EQ((*it).first, 3);
+    
+    ++it;
+    ++it;
+    EXPECT_EQ((*it).first, 5);
+    
+    ++it;
+    EXPECT_EQ(it, map.end());
 }
